@@ -618,7 +618,6 @@ int main()
 	getWord();//预读一个单词
 	//语法处理程序开始！
 	program();
-	cout << row << " " << lineCnt << endl;
 	cout << "语法处理成功完成" << endl;
 	return 0;
 }
