@@ -25,6 +25,10 @@ extern enum symbol {//枚举所有类别码
 	CONSTSY, INTSY, CHARSY, VOIDSY, MAINSY, IFSY, ELSESY,
 	DOSY, WHILESY, FORSY, SCANFSY, PRINTFSY, RETURNSY
 };
+extern enum interType {//枚举中间式的种类
+	VAR, CONST, VARASS, FUNC, PARAM, PUSH, ARRAY,
+	CALL, RET, COMPARE, GOTO, BNZ, BZ, ARRASS
+};
 struct nowword {
 	int num;
 	string str;
@@ -45,6 +49,16 @@ struct symtab {
 	int funcNum; //当前声明的函数个数
 };
 extern struct symtab symTable;
+struct intermedia {
+	string expr[4]; //四元式
+	interType type; //四元式的类型
+	int len;
+};
+struct interMediaTab {
+	struct intermedia exprs[10000];
+	int ind; //计数指针
+};
+extern struct interMediaTab imTable;
 
 //全局共享常量声明
 extern const int maxLineLen;
@@ -53,6 +67,7 @@ extern const int keywordNum;
 extern const int maxNumBit;
 extern const int maxNum;
 extern const int maxSymNum;
+extern const int maxIntermediaNum;
 extern const int stackSize;
 
 extern const string symStr[37];
@@ -65,3 +80,4 @@ void getWord();
 int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);
+void genInterMedia(interType type, string p1, string p2, string p3, string p4);

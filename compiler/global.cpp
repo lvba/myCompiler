@@ -8,6 +8,7 @@ using namespace std;
 //全局共享常量定义（必须定义在变量之前的）
 extern const int maxIdenLen = 50; //变量名最长为50
 extern const int maxSymNum = 5000; //符号表能容纳的最大符号量为5000
+extern const int maxIntermediaNum = 10000; //四元式表最多容纳10000条四元式
 
 //全局共享变量定义
 ifstream infile;
@@ -26,6 +27,10 @@ enum symbol {//枚举所有类别码
 	IDENT,
 	CONSTSY, INTSY, CHARSY, VOIDSY, MAINSY, IFSY, ELSESY,
 	DOSY, WHILESY, FORSY, SCANFSY, PRINTFSY, RETURNSY
+};
+enum interType {//枚举中间式的种类
+	VAR, CONST, VARASS, FUNC, PARAM, PUSH, ARRAY,
+	CALL, RET, COMPARE, GOTO, BNZ, BZ, ARRASS
 };
 struct nowword {
 	int num;
@@ -47,6 +52,16 @@ struct symtab {
 	int funcNum; //当前声明的函数个数
 };
 struct symtab symTable;
+struct intermedia {
+	string expr[4]; //四元式
+	interType type; //四元式的类型
+	int len;
+};
+struct interMediaTab {
+	struct intermedia exprs[maxIntermediaNum];
+	int ind; //计数指针
+};
+struct interMediaTab imTable;
 
 //全局共享常量定义
 extern const int maxLineLen = 200;

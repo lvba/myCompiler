@@ -450,8 +450,10 @@ void constDef()
 				} else {
 					int constInt = getInt();
 					//登录符号表
-					if(constInt != -99999998)
+					if (constInt != -99999998) {
 						insertSymTable(name, 0, 0, -1, nowLevel, constInt);
+						genInterMedia(CONST, "const", "int", name, to_string(constInt));
+					}	
 					cout << "这是一个int型常量的定义" << endl;
 				}
 			}
@@ -480,6 +482,9 @@ void constDef()
 						char tempc = nowWord.str[1];
 						//登录符号表
 						insertSymTable(name, 0, 1, -1, nowLevel, tempc);
+						string temps = "";
+						temps += tempc;
+						genInterMedia(CONST, "const", "char", name, temps);
 						cout << "这是一个char常量的定义" << endl;
 					}		
 				}
@@ -538,6 +543,7 @@ bool varDef()
 			if (nowWord.sym == COMMA || nowWord.sym == SEMICOLON) {
 				//登录符号表，变量的addr此时暂时初始化为0
 				insertSymTable(varName, 1, type, -1, nowLevel, 0);
+				genInterMedia(VAR, "var", type == 0 ? "int" : "char", varName, "");
 				cout << "这是一个普通变量定义" << endl;
 			} else {
 				if (nowWord.sym == LBRACK) { //数组变量
@@ -556,6 +562,7 @@ bool varDef()
 								getWord();//预读下一个符号以便循环判断
 							//登录符号表，地址暂时填0
 							insertSymTable(varName, 3, type, dimen, nowLevel, 0);
+							genInterMedia(ARRAY, "array", type == 0 ? "int" : "char", varName, to_string(dimen));
 							cout << "这是一个数组变量定义" << endl;
 						}
 					}
