@@ -20,17 +20,20 @@ void returnFunc();
 void constDeclare();
 void expression();
 
-void test(symbol sym, int errCode)
+bool test(symbol sym, int errCode)
 {
 	getWord();
-	if (nowWord.sym != sym)
-		error(errCode);
+	if (nowWord.sym != sym) {
+		error(errCode, "");
+		return false;
+	}
+	return true;
 }
 
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr)
 {
 	if (symTable.top >= maxSymNum) { //符号表溢出
-		error(6);
+		error(6, "");
 		return false;
 	} else {
 		//查找是否有变量重定义
@@ -39,7 +42,7 @@ bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr
 				int cnt = symTable.top - 1;
 				while (symTable.syms[cnt].spaceLv == spLv) {
 					if (symTable.syms[cnt].name == name) {
-						error(7);
+						error(7, "");
 						return false;
 					}
 					--cnt;
@@ -66,9 +69,11 @@ void factor()
 			if (nowWord.sym == LBRACK) { //数组取下标的情况
 				getWord();
 				expression();
-				if (nowWord.sym != RBRACK)
-					error(10);
-				getWord();
+				if (nowWord.sym != RBRACK) {
+					error(10, "factor");
+					return;
+				} else
+					getWord();
 			} else {
 				if (nowWord.sym == LPARENT) { //有返回值的函数调用
 					getWord();
@@ -79,23 +84,29 @@ void factor()
 							expression();
 						}
 					}
-					if (nowWord.sym != RPARENT)
-						error(12);
-					getWord();
+					if (nowWord.sym != RPARENT) {
+						error(12, "factor");
+						return;
+					} else
+						getWord();
 				} else
 					; //为最普通的标识符（即普通变量）
 			}
 			break;
 		case PLUS:
 			getWord();
-			if (nowWord.sym != CONUNSIGN)
-				error(16);
+			if (nowWord.sym != CONUNSIGN) {
+				error(16, "factor");
+				return;
+			}	
 			getWord();
 			break;
 		case MINUS:
 			getWord();
-			if (nowWord.sym != CONUNSIGN)
-				error(16);
+			if (nowWord.sym != CONUNSIGN) {
+				error(16, "factor");
+				return;
+			}	
 			getWord();
 			break;
 		case CONUNSIGN:
@@ -107,9 +118,11 @@ void factor()
 		case LPARENT:
 			getWord();
 			expression();
-			if (nowWord.sym != RPARENT)
-				error(12);
-			getWord();
+			if (nowWord.sym != RPARENT) {
+				error(12, "factor");
+				return;
+			} else
+				getWord();
 			break;
 	}
 }
@@ -150,12 +163,14 @@ void statement()
 {
 	switch (nowWord.sym) {
 		case IFSY: //if...else语句
-			test(LPARENT, 11);
-			getWord();
+			if(test(LPARENT, 11))
+				getWord();
 			condition();
-			if (nowWord.sym != RPARENT)
-				error(12);
-			getWord();
+			if (nowWord.sym != RPARENT) {
+				error(12, "if");
+				return;
+			} else
+				getWord();
 			statement();
 			if (nowWord.sym == ELSESY) { //有else分句
 				getWord();
@@ -166,45 +181,62 @@ void statement()
 		case DOSY: //do...while语句
 			getWord();
 			statement();
-			if (nowWord.sym != WHILESY)
-				error(17);
-			test(LPARENT, 11);
-			getWord();
+			if (nowWord.sym != WHILESY) {
+				error(17, "while");
+				return;
+			}		
+			if(test(LPARENT, 11))
+				getWord();
 			condition();
-			if (nowWord.sym != RPARENT)
-				error(12);
-			getWord();
+			if (nowWord.sym != RPARENT) {
+				error(12, "while");
+				return;
+			} else 
+				getWord();
 			cout << "这是一个do-while语句" << endl;
 			break;
 		case FORSY: //for语句
-			test(LPARENT, 11);
-			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);
-			test(ASSIGN, 2);
-			getWord();
+			if(test(LPARENT, 11))
+				getWord();
+			if (nowWord.sym != IDENT) {
+				error(1, "for");
+				return;
+			}	
+			if(test(ASSIGN, 2))
+				getWord();
 			expression();
-			if (nowWord.sym != SEMICOLON)
-				error(5);
-			getWord();
+			if (nowWord.sym != SEMICOLON) {
+				error(5, "for");
+				return;
+			} else
+				getWord();
 			condition();
-			if (nowWord.sym != SEMICOLON)
-				error(5);
-			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);
-			test(ASSIGN, 2);
-			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);
-			getWord();
-			if (nowWord.sym != PLUS && nowWord.sym != MINUS)
-				error(18);
-			getWord();
-			if (nowWord.sym != CONUNSIGN)
-				error(16);
-			test(RPARENT, 12);
-			getWord();
+			if (nowWord.sym != SEMICOLON) {
+				error(5, "for");
+				return;
+			} else
+				getWord();
+			if (nowWord.sym != IDENT) {
+				error(1, "for");
+				return;
+			} 
+			if(test(ASSIGN, 2))
+				getWord();
+			if (nowWord.sym != IDENT) {
+				error(1, "for");
+				return;
+			} getWord();
+			if (nowWord.sym != PLUS && nowWord.sym != MINUS) {
+				error(18, "for");
+				return;
+			} else
+				getWord();
+			if (nowWord.sym != CONUNSIGN) {
+				error(16, "for");
+				return;
+			}
+			if(test(RPARENT, 12))
+				getWord();
 			statement();
 			cout << "这是一个for语句" << endl;
 			break;
@@ -221,27 +253,34 @@ void statement()
 				if (nowWord.sym == ASSIGN) {
 					getWord();
 					expression();
-					if (nowWord.sym != SEMICOLON)
-						error(5);
-					getWord();
+					if (nowWord.sym != SEMICOLON) {
+						error(5, "for");
+						return;
+					} else
+						getWord();
 					cout << "这是普通变量的赋值语句" << endl;
 				} else {
 					getWord();
 					expression();
-					if (nowWord.sym != RBRACK)
-						error(10);
-					test(ASSIGN, 2);
-					getWord();
+					if (nowWord.sym != RBRACK) {
+						error(10, "for");
+						return;
+					}	
+					if(test(ASSIGN, 2))
+						getWord();
 					expression();
-					if (nowWord.sym != SEMICOLON)
-						error(5);
-					getWord();
+					if (nowWord.sym != SEMICOLON) {
+						error(5, "for");
+						return;
+					} else
+						getWord();
 					cout << "这是数组下标的赋值语句" << endl;
 				}
 			} else { 
-				if (nowWord.sym != LPARENT)
-					error(19);
-				else { //有返回值和无返回值的函数
+				if (nowWord.sym != LPARENT) {
+					error(19, "");
+					return;
+				} else { //有返回值和无返回值的函数
 					getWord();
 					if (nowWord.sym != RPARENT) {
 						expression();
@@ -250,55 +289,72 @@ void statement()
 							expression();
 						}			
 					}
-					if (nowWord.sym != RPARENT)
-						error(12);
-					test(SEMICOLON, 5);
-					getWord();
+					if (nowWord.sym != RPARENT) {
+						error(12, "while");
+						return;
+					} else {
+						if(test(SEMICOLON, 5))
+							getWord();
+					}
 					cout << "这是有返回值或者无返回值的函数调用" << endl;
 				}
 			}
 			break;
 		case SCANFSY: //读语句
-			test(LPARENT, 11);
-			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);
+			if(test(LPARENT, 11))
+				getWord();
+			if (nowWord.sym != IDENT) {
+				error(1, "for");
+				return;
+			}
 			getWord();
 			while (nowWord.sym == COMMA) {
 				getWord();
 				getWord();
 			}
-			if (nowWord.sym != RPARENT)
-				error(12);
-			test(SEMICOLON, 5);
-			getWord();
+			if (nowWord.sym != RPARENT) {
+				error(12, "while");
+				return;
+			} else {
+				if(test(SEMICOLON, 5))
+					getWord();
+			}	
 			cout << "这是读语句" << endl;
 			break;
 		case PRINTFSY: //写语句
-			test(LPARENT, 11);
-			getWord();
+			if(test(LPARENT, 11))
+				getWord();
 			if (nowWord.sym == CONSTR) {
 				getWord();
 				if (nowWord.sym == COMMA) {
 					getWord();
 					expression();
-					if (nowWord.sym != RPARENT)
-						error(12);
-					test(SEMICOLON, 5);
+					if (nowWord.sym != RPARENT) {
+						error(12, "while");
+						return;
+					}
+						
+					else
+						test(SEMICOLON, 5);
 					getWord();
 				} else {
 					if (nowWord.sym == RPARENT) {
-						test(SEMICOLON, 5);
-						getWord();
-					} else
-						error(20);
+						if(test(SEMICOLON, 5))
+							getWord();
+					} else {
+						error(20, "");
+						return;
+					}	
 				}
 			} else { //只输出表达式
 				expression();
-				if (nowWord.sym != RPARENT)
-					error(12);
-				test(SEMICOLON, 5);
-				getWord();
+				if (nowWord.sym != RPARENT) {
+					error(12, "while");
+					return;
+				} else {
+					if(test(SEMICOLON, 5))
+						getWord();
+				}
 			}
 			cout << "这是写语句" << endl;
 			break;
@@ -314,13 +370,18 @@ void statement()
 				if (nowWord.sym == LPARENT) {
 					getWord();
 					expression();
-					if (nowWord.sym != RPARENT)
-						error(12);
-					test(SEMICOLON, 5);
-					getWord();
+					if (nowWord.sym != RPARENT) {
+						error(12, "while");
+						return;
+					} else {
+						if(test(SEMICOLON, 5))
+							getWord();
+					}	
 				}
-				else
-					error(21);
+				else {
+					error(21, "");
+					return;
+				}		
 			}
 			cout << "这是返回语句" << endl;
 			break;
@@ -357,7 +418,7 @@ void program()
 			if (nowWord.sym == INTSY || nowWord.sym == CHARSY)
 				returnFunc();
 			else
-				error(0);
+				error(0, "program");
 		}
 	}
 	//此时当前标识符指向main
@@ -367,7 +428,7 @@ void program()
 	getWord();//预读
 	compoundState();
 	if (nowWord.sym != RBRACE)
-		error(14);
+		error(14, "program");
 	cout << "这是一个main函数" << endl;
 }
 
@@ -377,14 +438,16 @@ void constDef()
 	if (nowWord.str == "int") { //int型常量定义
 		do {
 			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);//应是标识符
-			else {
+			if (nowWord.sym != IDENT) {
+				error(1, "constDef");//应是标识符
+				continue;
+			} else {
 				name = nowWord.str;
 				getWord();
-				if (nowWord.sym != ASSIGN)
-					error(2);//应是=
-				else {
+				if (nowWord.sym != ASSIGN) {
+					error(2, "constDef");//应是=
+					continue;
+				} else {
 					int constInt = getInt();
 					//登录符号表
 					if(constInt != -99999998)
@@ -399,18 +462,21 @@ void constDef()
 	if (nowWord.str == "char") { //char型常量定义
 		do {
 			getWord();
-			if (nowWord.sym != IDENT)
-				error(1);//应是标识符
-			else {
+			if (nowWord.sym != IDENT) {
+				error(1, "constDef");//应是标识符
+				continue;
+			} else {
 				name = nowWord.str;
 				getWord();
-				if (nowWord.sym != ASSIGN)
-					error(2);//应是=
-				else {
+				if (nowWord.sym != ASSIGN) {
+					error(2, "constDef");//应是=
+					continue;
+				} else {
 					getWord();
-					if (nowWord.sym != CONCHAR)
-						error(3);
-					else {
+					if (nowWord.sym != CONCHAR) {
+						error(3, "");
+						continue;
+					} else {
 						char tempc = nowWord.str[1];
 						//登录符号表
 						insertSymTable(name, 0, 1, -1, nowLevel, tempc);
@@ -422,19 +488,22 @@ void constDef()
 		} while (nowWord.sym == COMMA);
 		return;
 	}
-	error(0);//错误：应为类型标识符
+	error(0, "constDef");//错误：应为类型标识符
 }
 
 void constDeclare()
 {
-	if (nowWord.sym != CONSTSY) 
-		error(4);
+	if (nowWord.sym != CONSTSY) {
+		error(4, "");
+		return;
+	}	
 	do {
 		getWord();
 		constDef();
 		if (nowWord.sym != SEMICOLON)
-			error(5);
-		getWord();
+			error(5, "for");
+		else
+			getWord();
 	} while (nowWord.sym == CONSTSY);
 	return;
 }
@@ -453,9 +522,10 @@ bool varDef()
 	}
 	do {
 		getWord();
-		if (nowWord.sym != IDENT && nowWord.sym != MAINSY)
-			error(1);
-		else {
+		if (nowWord.sym != IDENT && nowWord.sym != MAINSY) {
+			error(1, "varDef");
+			continue;
+		} else {
 			varName = nowWord.str;
 			getWord();
 			if (nowWord.sym == LPARENT) { //现在正在处理的语法成分不是变量定义而已经是函数定义了
@@ -473,18 +543,20 @@ bool varDef()
 				if (nowWord.sym == LBRACK) { //数组变量
 					int dimen = -1;
 					getWord();
-					if (nowWord.sym != CONUNSIGN)
-						error(8);
-					else {
-						if (nowWord.num == 0)
-							error(9);
-						else {
+					if (nowWord.sym != CONUNSIGN) {
+						error(8, "");
+						continue;
+					} else {
+						if (nowWord.num == 0) {
+							error(9, "");
+							continue;
+						} else {
 							dimen = nowWord.num;
-							test(RBRACK, 10);
+							if(test(RBRACK, 10))
+								getWord();//预读下一个符号以便循环判断
 							//登录符号表，地址暂时填0
 							insertSymTable(varName, 3, type, dimen, nowLevel, 0);
 							cout << "这是一个数组变量定义" << endl;
-							getWord();//预读下一个符号以便循环判断
 						}
 					}
 				}
@@ -501,8 +573,9 @@ void varDeclare()
 		isFinish = varDef();
 		if (isFinish) {
 			if (nowWord.sym != SEMICOLON)
-				error(5);
-			getWord();
+				error(5, "for");
+			else
+				getWord();
 		}		
 	} while (isFinish);
 }
@@ -521,13 +594,17 @@ int paramList()
 		else {
 			if (nowWord.sym == CHARSY)
 				type = 1;
-			else
-				error(0);
+			else {
+				error(0, "paramList");
+				continue;
+			}
+				
 		}
 		getWord();
-		if (nowWord.sym != IDENT)
-			error(1);
-		else {
+		if (nowWord.sym != IDENT) {
+			error(1, "paramList");
+			continue;
+		} else {
 			//将该函数参数变量登录符号表，地址暂时填0
 			insertSymTable(nowWord.str, 2, type, -1, nowLevel, 0);
 			++paramNum;
@@ -540,7 +617,7 @@ int paramList()
 
 void returnFunc()
 {
-	int funcType;
+	int funcType, flag = 0;
 	string funcName;
 	if (varToFuncFlag) { //处理变量说明时多读了声明头部
 		funcType = misReadType;
@@ -552,18 +629,22 @@ void returnFunc()
 		else
 			funcType = 1;
 		getWord();
-		if (nowWord.sym != IDENT)
-			error(1);
-		else 
+		if (nowWord.sym != IDENT) {
+			error(1, "");
+			funcName = "nameless_ret_func";
+		} else 
 			funcName = nowWord.str;
-		test(LPARENT, 11);
+		if (!test(LPARENT, 11))
+			flag = 1;
 	}
 	//处理形参表(此时nowWord指向左括号)
-	getWord();//预读一个符号进入参数表处理函数
+	if(flag == 0)
+		getWord();//预读一个符号进入参数表处理函数
 	int paramNum = paramList();
 	if (nowWord.sym != RPARENT)
-		error(12);
-	test(LBRACE, 13);
+		error(12, "returnFunc");
+	else
+		test(LBRACE, 13);
 	//将函数信息登录进符号表
 	insertSymTable(funcName, 4, funcType, paramNum, nowLevel, 0);
 	//进入块，改变level
@@ -571,32 +652,37 @@ void returnFunc()
 	getWord();//预读一个符号以进入复合语句处理子函数
 	compoundState();
 	if (nowWord.sym != RBRACE)
-		error(14);
+		error(14, "");
+	else
+		getWord();//预读
 	nowLevel = 0; //回到全局作用域
-	getWord();//预读
 	cout << "这是一个有返回值的函数定义" << endl;
 }
 
 void voidFunc()
 {
-	if (nowWord.sym != VOIDSY)
-		error(15);
+	if (nowWord.sym != VOIDSY) {
+		error(15, "");
+		return;
+	}	
 	string funcName;
 	getWord();
 	if (nowWord.sym == MAINSY) {//此为void main，不应由此子函数处理，跳出
 		isReachMain = true;
 		return;
 	}
-	if (nowWord.sym != IDENT)
-		error(1);
-	else
+	if (nowWord.sym != IDENT) {
+		error(1, "");
+		funcName = "nameless_void_func";
+	} else
 		funcName = nowWord.str;
-	test(LPARENT, 11);
-	getWord();//预读一个符号进入参数表处理函数
+	if(test(LPARENT, 11))
+		getWord();//预读一个符号进入参数表处理函数
 	int paramNum = paramList();
 	if (nowWord.sym != RPARENT)
-		error(12);
-	test(LBRACE, 13);
+		error(12, "returnFunc");
+	else
+		test(LBRACE, 13);
 	//将函数信息登录进符号表
 	insertSymTable(funcName, 4, 2, paramNum, nowLevel, 0);
 	//进入块，改变level
@@ -604,9 +690,10 @@ void voidFunc()
 	getWord();//预读一个符号以进入复合语句处理子函数
 	compoundState();
 	if (nowWord.sym != RBRACE)
-		error(14);
+		error(14, "");
+	else
+		getWord();//预读
 	nowLevel = 0; //回到全局作用域
-	getWord();//预读
 	cout << "这是一个无返回值的函数定义" << endl;
 }
 

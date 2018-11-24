@@ -16,6 +16,7 @@ int lineCnt = 0;
 int row = 0;
 int nowLevel = 0;
 int addLevel = 0;
+char nowCh;
 
 enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,

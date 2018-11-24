@@ -7,7 +7,6 @@
 #include "global.h"
 using namespace std;
 
-static char nowCh;
 static string line;
 static int lineLen;
 
@@ -38,12 +37,15 @@ int parseUnsigned()//处理无符号整数，且不允许前导零
 	while (nowCh >= '0' && nowCh <= '9') {
 		value = value * 10 + (nowCh - '0');
 		++k;
-		if (k == 2 && isZero) //不允许前导零！
-			error(22);	
+		if (k == 2 && isZero) { //不允许前导零！
+			error(22, "");
+			value = 0;
+			return value;
+		}
 		nextCh();
 	}
 	if (k > maxNumBit || value > maxNum) {
-		error(23); //错误：数字过大
+		error(23, ""); //错误：数字过大
 		value = 0;
 		k = 0;
 	}
@@ -170,8 +172,11 @@ void getWord()
 			printWordInfo();
 			return;
 		}
-		else 
-			error(2);//错误：应为=	
+		else {
+			error(2, "!=");//错误：应为=
+			printWordInfo();
+			return;
+		}			
 	}
 	if (nowCh == '=') {
 		nextCh();
@@ -207,11 +212,13 @@ void getWord()
 				return;
 			}
 			else {
-				error(24);//错误：应为'
+				error(24, "");//错误：应为'
+				return;
 			}
 		}
 		else {
-			error(25);//错误：应为加法，乘法运算符以及字母数字
+			error(25, "");//错误：应为加法，乘法运算符以及字母数字
+			return;
 		}
 	}
 	if (nowCh == '"') {//字符串
@@ -223,11 +230,13 @@ void getWord()
 				s += nowCh;
 				nextCh();
 				if (infile.eof() && lineCnt == lineLen - 1) {
-					error(26);//错误：已读到文件末尾
+					error(26, "");//错误：已读到文件末尾
 				}
 			}
 			else {
-				error(27);//错误：字符串中非法字符
+				error(27, "");//错误：字符串中非法字符
+				s = "wrong string";
+				break;
 			}
 		}
 		nowWord.sym = CONSTR;
@@ -293,7 +302,7 @@ void getWord()
 		return;
 	}
 	//不是上述合法开始符的情况，报错
-	error(28);//错误：非法的符号开始字符
+	error(28, "");//错误：非法的符号开始字符
 }
 
 int getInt()
@@ -302,25 +311,27 @@ int getInt()
 	getWord();
 	if (nowWord.sym == MINUS) {
 		getWord();
-		if (nowWord.sym != CONUNSIGN)
-			error(3);
-		else {
+		if (nowWord.sym != CONUNSIGN) {
+			error(3, "");
+			return ret;
+		} else {
 			ret = -(nowWord.num);
 			return ret;
 		}
 	}
 	if (nowWord.sym == PLUS) {
 		getWord();
-		if (nowWord.sym != CONUNSIGN)
-			error(3);
-		else {
+		if (nowWord.sym != CONUNSIGN) {
+			error(3, "");
+			return -ret;
+		} else {
 			ret = nowWord.num;
 			return ret;
 		}
 	}
 	if (nowWord.sym == CONUNSIGN)
 		return nowWord.num;
-	error(3);
+	error(3, "");
 	return ret;
 }
 

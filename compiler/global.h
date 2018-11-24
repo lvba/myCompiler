@@ -14,6 +14,7 @@ extern int lineCnt;
 extern int row;
 extern int nowLevel;
 extern int addLevel;
+extern char nowCh;
 
 extern enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
@@ -61,6 +62,6 @@ extern const symbol keySymbol[13];
 //全局共享函数声明
 void nextCh();
 void getWord();
-void error(int errCode);
+int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);

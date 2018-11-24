@@ -6,3 +6,8 @@
 #include<sstream>
 #include "global.h"
 using namespace std;
+
+void init()
+{
+
+}
