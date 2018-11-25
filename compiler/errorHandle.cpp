@@ -30,7 +30,7 @@ static const string errMsg[] = {
 
 void printErrorMsg(int errCode)
 {
-	cout << "（错误）位于行"<<row<<"列"<<lineCnt<<"："<<errMsg[errCode] << endl;
+	cout << "（错误）位于行"<<lastRow<<"列"<<lastLineCnt<<"："<<errMsg[errCode] << endl;
 }
 
 void skip(int errCode, string errInfo) //适当修复错误然后跳一定范围
@@ -226,6 +226,7 @@ void skip(int errCode, string errInfo) //适当修复错误然后跳一定范围
 
 int error(int errCode, string errInfo)
 {
+	++errorCnt;
 	printErrorMsg(errCode);
 	skip(errCode, errInfo);
 	return 0;

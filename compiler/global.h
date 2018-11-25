@@ -12,9 +12,12 @@ extern ifstream infile;
 extern ofstream ofile;
 extern int lineCnt;
 extern int row;
+extern int lastLineCnt;
+extern int lastRow;
 extern int nowLevel;
 extern int addLevel;
 extern char nowCh;
+extern int errorCnt;
 
 extern enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
@@ -27,7 +30,7 @@ extern enum symbol {//枚举所有类别码
 };
 extern enum interType {//枚举中间式的种类
 	VAR, CONST, VARASS, FUNC, PARAM, PUSH, ARRAY,
-	CALL, RET, COMPARE, GOTO, BNZ, BZ, ARRASS
+	CALL, RET, COMPARE, GOTO, BNZ, BZ, ARRASS, LABEL
 };
 struct nowword {
 	int num;
@@ -59,6 +62,10 @@ struct interMediaTab {
 	int ind; //计数指针
 };
 extern struct interMediaTab imTable;
+struct polishNote {//负责每一个表达式的后缀表达式计算与存储
+	vector<string> stack;
+	bool canBeCalc;//是否可以直接由后缀表达式计算出值（即不含函数调用）
+};
 
 //全局共享常量声明
 extern const int maxLineLen;
@@ -81,3 +88,7 @@ int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);
 void genInterMedia(interType type, string p1, string p2, string p3, string p4);
+string genLabel();
+string genTemp();
+void resetTemp();
+void printImTable();

@@ -15,9 +15,12 @@ ifstream infile;
 ofstream ofile;
 int lineCnt = 0;
 int row = 0;
+int lastLineCnt = 0;
+int lastRow = 0;
 int nowLevel = 0;
 int addLevel = 0;
 char nowCh;
+int errorCnt = 0;
 
 enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,

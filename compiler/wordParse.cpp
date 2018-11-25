@@ -22,12 +22,16 @@ void nextCh()
 {
 	if (lineCnt == 0) {
 		getline(infile, line);
+		lastRow = row;
 		++row;
 		lineLen = line.size();
 	}
+	lastLineCnt = lineCnt;
 	nowCh = line[lineCnt++];
-	if (lineCnt == lineLen)
+	if (lineCnt == lineLen) {
+		lastLineCnt = lineCnt;
 		lineCnt = 0;
+	}	
 }
 
 int parseUnsigned()//处理无符号整数，且不允许前导零
