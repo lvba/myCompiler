@@ -7,7 +7,6 @@
 #include "global.h"
 using namespace std;
 
-static string filePath;
 static bool varToFuncFlag = false; //当处理变量声明的子函数误读了函数的声明头部时
 static bool isReachMain = false;
 static int misReadType;
@@ -19,7 +18,7 @@ void voidFunc();
 void varDeclare();
 void returnFunc();
 void constDeclare();
-pair<string, int> expression();
+pair<string, int> expression(int depth);
 
 bool test(symbol sym, int errCode)
 {
@@ -31,7 +30,7 @@ bool test(symbol sym, int errCode)
 	return true;
 }
 
-pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类型
+pair<string, int> factor(int depth)//返回两个参数，分别为临时变量名和因子（项，表达式）类型
 {
 	string retName = "";//中间式的表示符
 	string idName, integer, ch;
@@ -49,7 +48,7 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 					if (symTable.syms[find].object != 3)
 						error(30, "");
 				getWord();
-				pair<string, int> exprP = expression();
+				pair<string, int> exprP = expression(depth + 1);
 				string exprName = exprP.first;
 				int exprType = exprP.second;
 				if (exprType != 0)
@@ -88,7 +87,7 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 					int paramStart = find + 1, paramEnd = find + symTable.syms[find].size;
 					int paramInd = paramStart;
 					if (nowWord.sym != RPARENT) {
-						pair<string, int> p = expression();
+						pair<string, int> p = expression(depth + 1);
 						string param = p.first;
 						if (symTable.syms[paramInd].type != p.second)
 							error(33, "");
@@ -96,7 +95,7 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 						genInterMedia(PUSH, "push", param, "", "");
 						while (nowWord.sym == COMMA) {
 							getWord();
-							pair<string, int> p = expression();
+							pair<string, int> p = expression(depth + 1);
 							string param = p.first;
 							if (symTable.syms[paramInd].type != p.second)
 								error(33, "");
@@ -126,7 +125,18 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 						error(29, "");
 						find = 0;
 					}
-					return make_pair(idName, symTable.syms[find].type);
+					if (symTable.syms[find].object == 0) {//常量替换
+						if(symTable.syms[find].type == 0)
+							return make_pair(to_string(symTable.syms[find].addr), 0);
+						else {
+							char tempc = symTable.syms[find].addr;
+							string temps = "'";
+							temps += tempc;
+							temps += "'";
+							return make_pair(temps, 1);
+						}
+					} else
+						return make_pair(idName, symTable.syms[find].type);
 				}		
 			}
 			break;
@@ -166,7 +176,7 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 			break;
 		case LPARENT:
 			getWord();
-			pair<string, int> p = expression();
+			pair<string, int> p = expression(depth + 1);
 			retName = p.first;
 			if (nowWord.sym != RPARENT) {
 				error(12, "factor");
@@ -179,9 +189,9 @@ pair<string, int> factor()//返回两个参数，分别为临时变量名和因子（项，表达式）类
 	}
 }
 
-pair<string, int> term()
+pair<string, int> term(int depth)
 {
-	pair<string, int> retP = factor();
+	pair<string, int> retP = factor(depth);
 	string ret = retP.first;
 	int retType = retP.second;
 	string retName = ret;
@@ -190,20 +200,20 @@ pair<string, int> term()
 		string op = nowWord.sym == TIMES ? "*" : "/";
 		getWord();
 		retName = genTemp();
-		genInterMedia(VARASS, retName, ret, op, factor().first);
+		genInterMedia(VARASS, retName, ret, op, factor(depth).first);
 		ret = retName;
 	}
 	return make_pair(retName, retType);
 }
 
-pair<string, int> expression()
+pair<string, int> expression(int depth)
 {
 	symbol op = VOIDSY;
 	if (nowWord.sym == MINUS || nowWord.sym == PLUS) { //表达式前面有符号
 		op = nowWord.sym;
 		getWord();
 	}
-	pair<string, int> p = term();
+	pair<string, int> p = term(depth);
 	string ret = p.first;
 	int retType = p.second;
 	string retName = ret;
@@ -212,30 +222,34 @@ pair<string, int> expression()
 		retName = genTemp();
 		genInterMedia(VARASS, retName, "-1", "*", ret);
 	}
+	ret = retName;
 	while (nowWord.sym == MINUS || nowWord.sym == PLUS) {
 		retType = 0;
 		string op = nowWord.sym == MINUS ? "-" : "+";
 		getWord();
 		retName = genTemp();
-		genInterMedia(VARASS, retName, ret, op, term().first);
+		genInterMedia(VARASS, retName, ret, op, term(depth).first);
 		ret = retName;
 	}
-	resetTemp();
+	if(depth == 0)
+		resetTemp();
 	//cout << "这是一个表达式" << endl;
 	return make_pair(retName, retType);
 }
 
 void condition()
 {
-	pair<string, int> ret1P = expression();
+	bool isSingle = true;
+	pair<string, int> ret1P = expression(1);
 	string ret1 = ret1P.first;
 	int ret1Type = ret1P.second;
 	if (nowWord.sym == LESS || nowWord.sym == LESSEQL || nowWord.sym == GREAT ||
 		nowWord.sym == GREATEQL || nowWord.sym == EQUAL || nowWord.sym == NOTEQL) {
+		isSingle = false;
 		symbol op = nowWord.sym;
 		string opArr[6] = { "<", "<=", ">", ">=", "!=", "==" };
 		getWord();
-		pair<string, int> ret2P = expression();
+		pair<string, int> ret2P = expression(0);
 		string ret2 = ret2P.first;
 		int ret2Type = ret2P.second;
 		if (!(ret1Type == 0 && ret2Type == 0))
@@ -243,7 +257,9 @@ void condition()
 		genInterMedia(COMPARE, ret1, opArr[op - 4], ret2, "");
 		//cout << "这是一个条件" << endl;
 		return;
-	} 
+	}
+	if (isSingle)
+		resetTemp();
 	if (ret1Type != 0)
 		error(36, "");
 	genInterMedia(COMPARE, ret1, "!=", "0", "");
@@ -324,7 +340,7 @@ void statement(int funcType)
 			}	
 			if(test(ASSIGN, 2))
 				getWord();
-			exprP = expression();
+			exprP = expression(0);
 			exprRet = exprP.first;
 			exprType = exprP.second;
 			if (symTable.syms[find].type != exprType)
@@ -412,7 +428,7 @@ void statement(int funcType)
 						find = 0;
 					}
 					getWord();
-					pair<string, int> exprP = expression();
+					pair<string, int> exprP = expression(0);
 					exprRet = exprP.first;
 					int exprType = exprP.second;
 					if (symTable.syms[find].type != exprType)
@@ -434,7 +450,7 @@ void statement(int funcType)
 						if (symTable.syms[find].object != 3)
 							error(30, "");
 					getWord();
-					pair<string, int> arrDimenP = expression();
+					pair<string, int> arrDimenP = expression(1);
 					arrDimen = arrDimenP.first;
 					int arrType = arrDimenP.second;
 					if (arrType != 0)
@@ -445,7 +461,7 @@ void statement(int funcType)
 					}	
 					if(test(ASSIGN, 2))
 						getWord();
-					pair<string, int> exprP = expression();
+					pair<string, int> exprP = expression(0);
 					exprRet = exprP.first;
 					int exprType = exprP.second;
 					if (symTable.syms[find].type != exprType)
@@ -484,7 +500,7 @@ void statement(int funcType)
 					int paramStart = find + 1, paramEnd = find + symTable.syms[find].size;
 					int paramInd = paramStart;
 					if (nowWord.sym != RPARENT) {
-						pair<string, int> p = expression();
+						pair<string, int> p = expression(1);
 						exprRet = p.first;
 						if (symTable.syms[paramInd].type != p.second)
 							error(33, "");
@@ -492,7 +508,7 @@ void statement(int funcType)
 						genInterMedia(PUSH, "push", exprRet, "", "");
 						while (nowWord.sym == COMMA) {
 							getWord();
-							pair<string, int> p = expression();
+							pair<string, int> p = expression(1);
 							exprRet = p.first;
 							if (symTable.syms[paramInd].type != p.second)
 								error(33, "");
@@ -510,6 +526,7 @@ void statement(int funcType)
 							getWord();
 					}
 					genInterMedia(CALL, "call", idName, "", "");
+					resetTemp();
 					//cout << "这是有返回值或者无返回值的函数调用" << endl;
 				}
 			}
@@ -560,7 +577,7 @@ void statement(int funcType)
 				getWord();
 				if (nowWord.sym == COMMA) {//printf'('＜字符串＞,＜表达式＞')'
 					getWord();
-					exprRet = expression().first;
+					exprRet = expression(0).first;
 					genInterMedia(PUSH, "push", exprRet, "", "");
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
@@ -579,7 +596,7 @@ void statement(int funcType)
 				}
 				genInterMedia(CALL, "call", "printf", "", "");
 			} else { //只输出表达式
-				exprRet = expression().first;
+				exprRet = expression(0).first;
 				genInterMedia(PUSH, "push", exprRet, "", "");
 				if (nowWord.sym != RPARENT) {
 					error(12, "while");
@@ -606,7 +623,7 @@ void statement(int funcType)
 			} else {
 				if (nowWord.sym == LPARENT) {
 					getWord();
-					exprRet = expression().first;
+					exprRet = expression(0).first;
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
 						return;
@@ -727,7 +744,9 @@ void constDef()
 						//登录符号表
 						insertSymTable(name, 0, 1, -1, nowLevel, tempc);
 						string temps = "";
+						temps += '\'';
 						temps += tempc;
+						temps += '\'';
 						genInterMedia(CONST, "const", "char", name, temps);
 						//cout << "这是一个char常量的定义" << endl;
 					}		
@@ -956,17 +975,4 @@ void voidFunc()
 		getWord();//预读
 	nowLevel = 0; //回到全局作用域
 	//cout << "这是一个无返回值的函数定义" << endl;
-}
-
-int main()
-{
-	getline(cin, filePath);
-	infile.open(filePath);
-	nextCh();//预先读入一个字符以启动词法处理程序
-	getWord();//预读一个单词
-	//语法处理程序开始！
-	program();
-	cout << "语法处理结束！" << endl;
-	printImTable();
-	return 0;
 }

@@ -7,8 +7,27 @@
 #include "global.h"
 using namespace std;
 
+static string filePath;
+
 void init()
 {
 	symTable.top = 0;
 	imTable.ind = 0;
+}
+
+//编译器主函数
+int main()
+{
+	getline(cin, filePath);
+	infile.open(filePath);
+	nextCh();//预先读入一个字符以启动词法处理程序
+	getWord();//预读一个单词
+	//语法处理程序开始！
+	program();
+	cout << "语法处理结束！" << endl;
+	//打印中间式表
+	printImTable();
+	//生成mips汇编
+	genMips();
+	return 0;
 }

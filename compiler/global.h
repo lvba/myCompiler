@@ -66,6 +66,14 @@ struct polishNote {//负责每一个表达式的后缀表达式计算与存储
 	vector<string> stack;
 	bool canBeCalc;//是否可以直接由后缀表达式计算出值（即不含函数调用）
 };
+struct mipsAsm {//存储mips汇编的结构
+	string instr;
+	char type;//R, I, J
+	string r1;
+	string r2;
+	string r3;
+};
+extern vector<struct mipsAsm> mipsTable;
 
 //全局共享常量声明
 extern const int maxLineLen;
@@ -93,3 +101,5 @@ string genLabel();
 string genTemp();
 void resetTemp();
 void printImTable();
+void program();
+void genMips();

@@ -114,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="errorHandle.cpp" />
+    <ClCompile Include="genMipsCode.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="grammarParse.cpp" />
     <ClCompile Include="main.cpp" />

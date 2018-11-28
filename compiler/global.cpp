@@ -65,6 +65,14 @@ struct interMediaTab {
 	int ind; //计数指针
 };
 struct interMediaTab imTable;
+struct mipsAsm {//存储mips汇编的结构
+	string instr = "";
+	char type = 'N';//R, I, J
+	string r1 = "";
+	string r2 = "";
+	string r3 = "";
+};
+vector<struct mipsAsm> mipsTable;
 
 //全局共享常量定义
 extern const int maxLineLen = 200;
