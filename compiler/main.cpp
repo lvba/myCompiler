@@ -11,5 +11,4 @@ void init()
 {
 	symTable.top = 0;
 	imTable.ind = 0;
-
 }

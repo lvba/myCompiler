@@ -49,7 +49,7 @@ struct sym {
 struct symtab {
 	struct sym syms[5000];
 	int top; //栈顶指针
-	int funcNum; //当前声明的函数个数
+	vector<int> funcInd; //当前声明的函数在符号表中的下标
 };
 extern struct symtab symTable;
 struct intermedia {
@@ -87,6 +87,7 @@ void getWord();
 int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);
+int searchSymTable(string name, int object);
 void genInterMedia(interType type, string p1, string p2, string p3, string p4);
 string genLabel();
 string genTemp();

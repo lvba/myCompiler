@@ -52,7 +52,7 @@ struct sym {
 struct symtab {
 	struct sym syms[maxSymNum];
 	int top; //栈顶指针
-	int funcNum; //当前声明的函数个数
+	vector<int> funcInd; //当前声明的函数在符号表中的下标
 };
 struct symtab symTable;
 struct intermedia {

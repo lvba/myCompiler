@@ -12,13 +12,14 @@ static bool varToFuncFlag = false; //µ±´¦Àí±äÁ¿ÉùÃ÷µÄ×Óº¯ÊýÎó¶ÁÁËº¯ÊýµÄÉùÃ÷Í·²¿Ê
 static bool isReachMain = false;
 static int misReadType;
 static string misReadIdent;
+static bool hasReturn = false;
 //º¯ÊýÉùÃ÷
-void compoundState();
+void compoundState(int funcType);
 void voidFunc();
 void varDeclare();
 void returnFunc();
 void constDeclare();
-string expression();
+pair<string, int> expression();
 
 bool test(symbol sym, int errCode)
 {
@@ -30,38 +31,7 @@ bool test(symbol sym, int errCode)
 	return true;
 }
 
-bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr)
-{
-	if (symTable.top >= maxSymNum) { //·ûºÅ±íÒç³ö
-		error(6, "");
-		return false;
-	} else {
-		//²éÕÒÊÇ·ñÓÐ±äÁ¿ÖØ¶¨Òå
-		if (symTable.top != 0)
-			if (symTable.syms[symTable.top - 1].spaceLv == spLv) {
-				int cnt = symTable.top - 1;
-				while (symTable.syms[cnt].spaceLv == spLv) {
-					if (symTable.syms[cnt].name == name) {
-						error(7, "");
-						return false;
-					}
-					--cnt;
-				}
-			}
-		symTable.syms[symTable.top].name = name;
-		symTable.syms[symTable.top].object = obj;
-		symTable.syms[symTable.top].type = type;
-		symTable.syms[symTable.top].size = size;
-		symTable.syms[symTable.top].spaceLv = spLv;
-		symTable.syms[symTable.top].addr = addr;
-		if (obj == 4)
-			++symTable.funcNum;
-		++symTable.top;
-		return true;
-	}
-}
-
-string factor()
+pair<string, int> factor()//·µ»ØÁ½¸ö²ÎÊý£¬·Ö±ðÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±í´ïÊ½£©ÀàÐÍ
 {
 	string retName = "";//ÖÐ¼äÊ½µÄ±íÊ¾·û
 	string idName, integer, ch;
@@ -70,41 +40,94 @@ string factor()
 			idName = nowWord.str;
 			getWord();
 			if (nowWord.sym == LBRACK) { //Êý×éÈ¡ÏÂ±êµÄÇé¿ö
+				//¼ì²éÊÇ·ñÒÑ¶¨Òå
+				int find = searchSymTable(idName, 3);
+				if (find == -1) {
+					error(29, "");
+					find = 0;
+				} else
+					if (symTable.syms[find].object != 3)
+						error(30, "");
 				getWord();
-				string exprName = expression();
+				pair<string, int> exprP = expression();
+				string exprName = exprP.first;
+				int exprType = exprP.second;
+				if (exprType != 0)
+					error(37, "");
 				if (nowWord.sym != RBRACK) {
 					error(10, "factor");
-					return "";
+					return make_pair("", -1);
 				} else {
 					string retName = genTemp();
 					genInterMedia(ARRASS, retName, idName, "[]", exprName);
 					getWord();
-					return retName;
+					return make_pair(retName, symTable.syms[find].type);
 				}		
 			} else {
 				if (nowWord.sym == LPARENT) { //ÓÐ·µ»ØÖµµÄº¯Êýµ÷ÓÃ
+					//¼ì²é±äÁ¿ÃûÊÇ·ñºÏ·¨
+					int find = searchSymTable(idName, 4);
+					if (find == -1) {
+						error(29, "");
+						find = 0;
+					} else
+						if (!(symTable.syms[find].object == 4 && (symTable.syms[find].type != 2)))
+							error(31, "");
+					//¼ì²é¸Ã×÷ÓÃÓòÖÐÊÇ·ñÓÐÍ¬ÃûµÄ±äÁ¿
+					int symInd = symTable.top - 1;
+					if(symInd >= 0)
+						while (symTable.syms[symInd].spaceLv == nowLevel) {
+							if (symTable.syms[symInd].name == idName && symTable.syms[symInd].object != 4) {
+								error(42, "");
+								break;
+							}			
+							--symInd;
+						}
 					getWord();
+					//º¯Êýµ÷ÓÃ´«²ÎÊÇ·ñÆ¥Åä
+					int paramStart = find + 1, paramEnd = find + symTable.syms[find].size;
+					int paramInd = paramStart;
 					if (nowWord.sym != RPARENT) {
-						string param = expression();
+						pair<string, int> p = expression();
+						string param = p.first;
+						if (symTable.syms[paramInd].type != p.second)
+							error(33, "");
+						++paramInd;
 						genInterMedia(PUSH, "push", param, "", "");
 						while (nowWord.sym == COMMA) {
 							getWord();
-							string param = expression();
+							pair<string, int> p = expression();
+							string param = p.first;
+							if (symTable.syms[paramInd].type != p.second)
+								error(33, "");
+							++paramInd;
 							genInterMedia(PUSH, "push", param, "", "");
 						}
+						if (paramInd - 1 != paramEnd)
+							error(34, "");
 					}
 					if (nowWord.sym != RPARENT) {
 						error(12, "factor");
-						return "";
+						return make_pair("", -1);
 					} else {
 						genInterMedia(CALL, "call", idName, "", "");
 						string retName = genTemp();
 						genInterMedia(VARASS, retName, "RET", "", "");
 						getWord();
-						return retName;
+						return make_pair(retName, symTable.syms[find].type);
 					}	
-				} else
-					return idName; //Îª×îÆÕÍ¨µÄ±êÊ¶·û£¨¼´ÆÕÍ¨±äÁ¿£©
+				} else { //Îª×îÆÕÍ¨µÄ±êÊ¶·û£¨¼´ÆÕÍ¨±äÁ¿»ò³£Á¿£©
+					int find = searchSymTable(idName, 1);
+					if (find == -1)
+						find = searchSymTable(idName, 0);
+					if (find == -1)
+						find = searchSymTable(idName, 2);
+					if (find == -1) {
+						error(29, "");
+						find = 0;
+					}
+					return make_pair(idName, symTable.syms[find].type);
+				}		
 			}
 			break;
 		case PLUS:
@@ -113,11 +136,11 @@ string factor()
 			getWord();
 			if (nowWord.sym != CONUNSIGN) {
 				error(16, "factor");
-				return "";
+				return make_pair("", -1);
 			}
 			integer += to_string(nowWord.num);
 			getWord();
-			return integer;
+			return make_pair(integer, 0);
 			break;
 		case MINUS:
 			integer = "";
@@ -125,100 +148,118 @@ string factor()
 			getWord();
 			if (nowWord.sym != CONUNSIGN) {
 				error(16, "factor");
-				return "";
+				return make_pair("", -1);
 			}	
 			integer += to_string(nowWord.num);
 			getWord();
-			return integer;
+			return make_pair(integer, 0);
 			break;
 		case CONUNSIGN:
 			integer = to_string(nowWord.num);
 			getWord();
-			return integer;
+			return make_pair(integer, 0);
 			break;
 		case CONCHAR:
 			ch = nowWord.str;
 			getWord();
-			return ch;
+			return make_pair(ch, 1);
 			break;
 		case LPARENT:
 			getWord();
-			retName = expression();
+			pair<string, int> p = expression();
+			retName = p.first;
 			if (nowWord.sym != RPARENT) {
 				error(12, "factor");
-				return "";
+				return make_pair("", -1);
 			} else {
 				getWord();
-				return retName;
+				return make_pair(retName, p.second);
 			}	
 			break;
 	}
 }
 
-string term()
+pair<string, int> term()
 {
-	string ret = factor();
+	pair<string, int> retP = factor();
+	string ret = retP.first;
+	int retType = retP.second;
 	string retName = ret;
 	while (nowWord.sym == TIMES || nowWord.sym == DIV) {
+		retType = 0;
 		string op = nowWord.sym == TIMES ? "*" : "/";
 		getWord();
 		retName = genTemp();
-		genInterMedia(VARASS, retName, ret, op, factor());
+		genInterMedia(VARASS, retName, ret, op, factor().first);
 		ret = retName;
 	}
-	return retName;
+	return make_pair(retName, retType);
 }
 
-string expression()
+pair<string, int> expression()
 {
 	symbol op = VOIDSY;
 	if (nowWord.sym == MINUS || nowWord.sym == PLUS) { //±í´ïÊ½Ç°ÃæÓÐ·ûºÅ
 		op = nowWord.sym;
 		getWord();
 	}
-	string ret = term();
+	pair<string, int> p = term();
+	string ret = p.first;
+	int retType = p.second;
 	string retName = ret;
 	if (op == MINUS) {
+		retType = 0;
 		retName = genTemp();
 		genInterMedia(VARASS, retName, "-1", "*", ret);
 	}
 	while (nowWord.sym == MINUS || nowWord.sym == PLUS) {
+		retType = 0;
 		string op = nowWord.sym == MINUS ? "-" : "+";
 		getWord();
 		retName = genTemp();
-		genInterMedia(VARASS, retName, ret, op, term());
+		genInterMedia(VARASS, retName, ret, op, term().first);
 		ret = retName;
 	}
 	resetTemp();
 	//cout << "ÕâÊÇÒ»¸ö±í´ïÊ½" << endl;
-	return retName;
+	return make_pair(retName, retType);
 }
 
 void condition()
 {
-	string ret1 = expression();
+	pair<string, int> ret1P = expression();
+	string ret1 = ret1P.first;
+	int ret1Type = ret1P.second;
 	if (nowWord.sym == LESS || nowWord.sym == LESSEQL || nowWord.sym == GREAT ||
 		nowWord.sym == GREATEQL || nowWord.sym == EQUAL || nowWord.sym == NOTEQL) {
 		symbol op = nowWord.sym;
 		string opArr[6] = { "<", "<=", ">", ">=", "!=", "==" };
 		getWord();
-		string ret2 = expression();
+		pair<string, int> ret2P = expression();
+		string ret2 = ret2P.first;
+		int ret2Type = ret2P.second;
+		if (!(ret1Type == 0 && ret2Type == 0))
+			error(36, "");
 		genInterMedia(COMPARE, ret1, opArr[op - 4], ret2, "");
 		//cout << "ÕâÊÇÒ»¸öÌõ¼þ" << endl;
 		return;
 	} 
+	if (ret1Type != 0)
+		error(36, "");
 	genInterMedia(COMPARE, ret1, "!=", "0", "");
 	//cout << "ÕâÊÇÒ»¸öÌõ¼þ" << endl;
 	return;
 }
 
-void statement()
+void statement(int funcType)
 {
 	string ifLabel1, ifLabel2;
 	string doLabel;
 	string idName, idName2, idName3, exprRet, forLabel1, forLabel2, step;
 	symbol op;
 	string arrDimen;
+	pair<string, int> exprP;
+	int exprType, find;
 	switch (nowWord.sym) {
 		case IFSY: //if...elseÓï¾ä
 			ifLabel1 = genLabel();
@@ -231,13 +272,13 @@ void statement()
 				return;
 			} else
 				getWord();
-			statement();
+			statement(funcType);
 			if (nowWord.sym == ELSESY) { //ÓÐelse·Ö¾ä
 				ifLabel2 = genLabel();
 				genInterMedia(GOTO, "GOTO", ifLabel2, "", "");
 				genInterMedia(LABEL, ifLabel1, ":", "", "");
 				getWord();
-				statement();
+				statement(funcType);
 				genInterMedia(LABEL, ifLabel2, ":", "", "");
 			} else {
 				genInterMedia(LABEL, ifLabel1, ":", "", "");
@@ -248,7 +289,7 @@ void statement()
 			doLabel = genLabel();
 			genInterMedia(LABEL, doLabel, ":", "", "");
 			getWord();
-			statement();
+			statement(funcType);
 			if (nowWord.sym != WHILESY) {
 				error(17, "while");
 				return;
@@ -274,9 +315,20 @@ void statement()
 				return;
 			}
 			idName = nowWord.str;
+			find = searchSymTable(idName, 1);
+			if(find == -1)
+				find = searchSymTable(idName, 2);
+			if (find == -1) {
+				error(29, "");
+				find = 0;
+			}	
 			if(test(ASSIGN, 2))
 				getWord();
-			exprRet = expression();
+			exprP = expression();
+			exprRet = exprP.first;
+			exprType = exprP.second;
+			if (symTable.syms[find].type != exprType)
+				error(38, "");
 			genInterMedia(VARASS, idName, exprRet, "", "");
 			genInterMedia(LABEL, forLabel1, ":", "", "");
 			genInterMedia(BZ, "BZ", forLabel2, "", "");
@@ -296,6 +348,15 @@ void statement()
 				return;
 			} 
 			idName2 = nowWord.str;
+			find = searchSymTable(idName2, 1);
+			if (find == -1)
+				find = searchSymTable(idName2, 2);
+			if (find == -1) {
+				error(29, "");
+				find = 0;
+			}				
+			if (symTable.syms[find].type != 0)
+				error(37, "");
 			if(test(ASSIGN, 2))
 				getWord();
 			if (nowWord.sym != IDENT) {
@@ -303,6 +364,13 @@ void statement()
 				return;
 			} 
 			idName3 = nowWord.str;
+			find = searchSymTable(idName3, 1);
+			if (find == -1)
+				find = searchSymTable(idName3, 2);
+			if (find == -1) {
+				error(29, "");
+				find = 0;
+			}			
 			getWord();
 			if (nowWord.sym != PLUS && nowWord.sym != MINUS) {
 				error(18, "for");
@@ -318,7 +386,7 @@ void statement()
 			step = to_string(nowWord.num);
 			if(test(RPARENT, 12))
 				getWord();
-			statement();
+			statement(funcType);
 			genInterMedia(VARASS, idName2, idName3, op == PLUS ? "+" : "-", step);
 			genInterMedia(GOTO, "GOTO", forLabel1, "", "");
 			genInterMedia(LABEL, forLabel2, ":", "", "");
@@ -327,7 +395,7 @@ void statement()
 		case LBRACE: //Óï¾ä¿é
 			getWord();
 			while (nowWord.sym != RBRACE)
-				statement(); //´¦Àí<Óï¾ä>
+				statement(funcType); //´¦Àí<Óï¾ä>
 			getWord();
 			//cout << "ÕâÊÇÒ»¸öÓï¾ä¿é" << endl;
 			break;
@@ -336,8 +404,19 @@ void statement()
 			getWord();
 			if (nowWord.sym == ASSIGN || nowWord.sym == LBRACK) { //¸³ÖµÓï¾ä
 				if (nowWord.sym == ASSIGN) {
+					int find = searchSymTable(idName, 1);
+					if (find == -1)
+						find = searchSymTable(idName, 2);
+					if (find == -1) {
+						error(29, "");
+						find = 0;
+					}
 					getWord();
-					exprRet = expression();
+					pair<string, int> exprP = expression();
+					exprRet = exprP.first;
+					int exprType = exprP.second;
+					if (symTable.syms[find].type != exprType)
+						error(38, "");
 					if (nowWord.sym != SEMICOLON) {
 						error(5, "for");
 						return;
@@ -347,15 +426,30 @@ void statement()
 					}	
 					//cout << "ÕâÊÇÆÕÍ¨±äÁ¿µÄ¸³ÖµÓï¾ä" << endl;
 				} else {
+					int find = searchSymTable(idName, 3);
+					if (find == -1) {
+						error(29, "");
+						find = 0;
+					} else
+						if (symTable.syms[find].object != 3)
+							error(30, "");
 					getWord();
-					arrDimen = expression();
+					pair<string, int> arrDimenP = expression();
+					arrDimen = arrDimenP.first;
+					int arrType = arrDimenP.second;
+					if (arrType != 0)
+						error(37, "");
 					if (nowWord.sym != RBRACK) {
 						error(10, "for");
 						return;
 					}	
 					if(test(ASSIGN, 2))
 						getWord();
-					exprRet = expression();
+					pair<string, int> exprP = expression();
+					exprRet = exprP.first;
+					int exprType = exprP.second;
+					if (symTable.syms[find].type != exprType)
+						error(38, "");
 					if (nowWord.sym != SEMICOLON) {
 						error(5, "for");
 						return;
@@ -370,15 +464,43 @@ void statement()
 					error(19, "");
 					return;
 				} else { //ÓÐ·µ»ØÖµºÍÎÞ·µ»ØÖµµÄº¯Êý
+					int find = searchSymTable(idName, 4);
+					if (find == -1) {
+						error(29, "");
+						find = 0;
+					}		
+					//¼ì²é¸Ã×÷ÓÃÓòÖÐÊÇ·ñÓÐÍ¬ÃûµÄ±äÁ¿
+					int symInd = symTable.top - 1;
+					if (symInd >= 0)
+						while (symTable.syms[symInd].spaceLv == nowLevel) {
+							if (symTable.syms[symInd].name == idName && symTable.syms[symInd].object != 4) {
+								error(42, "");
+								break;
+							}
+							--symInd;
+						}
 					getWord();
+					//º¯Êýµ÷ÓÃ´«²ÎÊÇ·ñÆ¥Åä
+					int paramStart = find + 1, paramEnd = find + symTable.syms[find].size;
+					int paramInd = paramStart;
 					if (nowWord.sym != RPARENT) {
-						exprRet = expression();
+						pair<string, int> p = expression();
+						exprRet = p.first;
+						if (symTable.syms[paramInd].type != p.second)
+							error(33, "");
+						++paramInd;
 						genInterMedia(PUSH, "push", exprRet, "", "");
 						while (nowWord.sym == COMMA) {
 							getWord();
-							exprRet = expression();
+							pair<string, int> p = expression();
+							exprRet = p.first;
+							if (symTable.syms[paramInd].type != p.second)
+								error(33, "");
+							++paramInd;
 							genInterMedia(PUSH, "push", exprRet, "", "");
-						}			
+						}
+						if (paramInd - 1 != paramEnd)
+							error(34, "");
 					}
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
@@ -399,10 +521,24 @@ void statement()
 				error(1, "for");
 				return;
 			}
+			find = searchSymTable(nowWord.str, 1);
+			if (find == -1)
+				find = searchSymTable(nowWord.str, 2);
+			if (find == -1) {
+				error(29, "");
+				find = 0;
+			}				
 			genInterMedia(PUSH, "push", nowWord.str, "", "");
 			getWord();
 			while (nowWord.sym == COMMA) {
 				getWord();
+				int find = searchSymTable(nowWord.str, 1);
+				if (find == -1)
+					find = searchSymTable(nowWord.str, 2);
+				if (find == -1) {
+					error(29, "");
+					find = 0;
+				}					
 				genInterMedia(PUSH, "push", nowWord.str, "", "");
 				getWord();
 			}
@@ -424,7 +560,7 @@ void statement()
 				getWord();
 				if (nowWord.sym == COMMA) {//printf'('£¼×Ö·û´®£¾,£¼±í´ïÊ½£¾')'
 					getWord();
-					exprRet = expression();
+					exprRet = expression().first;
 					genInterMedia(PUSH, "push", exprRet, "", "");
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
@@ -443,7 +579,7 @@ void statement()
 				}
 				genInterMedia(CALL, "call", "printf", "", "");
 			} else { //Ö»Êä³ö±í´ïÊ½
-				exprRet = expression();
+				exprRet = expression().first;
 				genInterMedia(PUSH, "push", exprRet, "", "");
 				if (nowWord.sym != RPARENT) {
 					error(12, "while");
@@ -463,19 +599,24 @@ void statement()
 		case RETURNSY: //·µ»ØÓï¾ä
 			getWord();
 			if (nowWord.sym == SEMICOLON) {
+				if (funcType == 0 || funcType == 1)
+					error(39, "");
 				genInterMedia(RET, "ret", "", "", "");
 				getWord();
 			} else {
 				if (nowWord.sym == LPARENT) {
 					getWord();
-					exprRet = expression();
+					exprRet = expression().first;
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
 						return;
 					} else {
 						if(test(SEMICOLON, 5))
 							getWord();
-					}	
+					}
+					hasReturn = true;
+					if (funcType == 2)
+						error(40, "");
 					genInterMedia(RET, "ret", exprRet, "", "");
 				} else {
 					error(21, "");
@@ -487,14 +628,14 @@ void statement()
 	}
 }
 
-void compoundState()
+void compoundState(int funcType)
 {
 	if(nowWord.sym == CONSTSY)
 		constDeclare(); //´¦Àí³£Á¿ËµÃ÷
 	varDeclare(); //´¦Àí±äÁ¿ÉùÃ÷(¿ÉÄÜ²»´æÔÚ)
 	//´¦Àí£¼Óï¾äÁÐ£¾£¬ÒÑ¾­Ô¤¶ÁÁËÒ»¸ö·ûºÅÁË
 	while (nowWord.sym != RBRACE) 
-		statement(); //´¦Àí<Óï¾ä>
+		statement(funcType); //´¦Àí<Óï¾ä>
 	//cout << "ÕâÊÇÒ»¸ö¸´ºÏÓï¾ä" << endl;
 }
 
@@ -521,11 +662,15 @@ void program()
 		}
 	}
 	//´ËÊ±µ±Ç°±êÊ¶·ûÖ¸Ïòmain
+
 	test(LPARENT, 11);
 	test(RPARENT, 12);
 	test(LBRACE, 13);
+	nowLevel = 1000;//Ä¬ÈÏmainº¯ÊýµÄlevelÎª1000
+	//½«mainº¯ÊýµÇÂ¼Èë·ûºÅ±í
+	insertSymTable("main", 4, 2, 0, 0, 0);
 	getWord();//Ô¤¶Á
-	compoundState();
+	compoundState(2);
 	if (nowWord.sym != RBRACE)
 		error(14, "program");
 	//cout << "ÕâÊÇÒ»¸ömainº¯Êý" << endl;
@@ -748,17 +893,22 @@ void returnFunc()
 	//´¦ÀíÐÎ²Î±í(´ËÊ±nowWordÖ¸Ïò×óÀ¨ºÅ)
 	if(flag == 0)
 		getWord();//Ô¤¶ÁÒ»¸ö·ûºÅ½øÈë²ÎÊý±í´¦Àíº¯Êý
+	//½«º¯ÊýÐÅÏ¢µÇÂ¼½ø·ûºÅ±í
+	insertSymTable(funcName, 4, funcType, -1, 0, 0);
+	//½øÈë¿é£¬¸Ä±älevel
+	nowLevel = (++addLevel);
 	int paramNum = paramList();
 	if (nowWord.sym != RPARENT)
 		error(12, "returnFunc");
 	else
 		test(LBRACE, 13);
-	//½«º¯ÊýÐÅÏ¢µÇÂ¼½ø·ûºÅ±í
-	insertSymTable(funcName, 4, funcType, paramNum, nowLevel, 0);
-	//½øÈë¿é£¬¸Ä±älevel
-	nowLevel = (++addLevel);
+	//ÐÞ¸Äº¯Êý²ÎÊý¸öÊý
+	symTable.syms[symTable.funcInd[symTable.funcInd.size() - 1]].size = paramNum;
+	hasReturn = false;
 	getWord();//Ô¤¶ÁÒ»¸ö·ûºÅÒÔ½øÈë¸´ºÏÓï¾ä´¦Àí×Óº¯Êý
-	compoundState();
+	compoundState(funcType);
+	if (!hasReturn)
+		error(41, "");
 	if (nowWord.sym != RBRACE)
 		error(14, "");
 	else
@@ -787,17 +937,19 @@ void voidFunc()
 	genInterMedia(FUNC, "void", funcName, "()", "");
 	if(test(LPARENT, 11))
 		getWord();//Ô¤¶ÁÒ»¸ö·ûºÅ½øÈë²ÎÊý±í´¦Àíº¯Êý
+	//½«º¯ÊýÐÅÏ¢µÇÂ¼½ø·ûºÅ±í
+	insertSymTable(funcName, 4, 2, -1, 0, 0);
+	//½øÈë¿é£¬¸Ä±älevel
+	nowLevel = (++addLevel);
 	int paramNum = paramList();
 	if (nowWord.sym != RPARENT)
 		error(12, "returnFunc");
 	else
 		test(LBRACE, 13);
-	//½«º¯ÊýÐÅÏ¢µÇÂ¼½ø·ûºÅ±í
-	insertSymTable(funcName, 4, 2, paramNum, nowLevel, 0);
-	//½øÈë¿é£¬¸Ä±älevel
-	nowLevel = (++addLevel);
+	//ÐÞ¸Äº¯Êý²ÎÊý¸öÊý
+	symTable.syms[symTable.funcInd[symTable.funcInd.size() - 1]].size = paramNum;
 	getWord();//Ô¤¶ÁÒ»¸ö·ûºÅÒÔ½øÈë¸´ºÏÓï¾ä´¦Àí×Óº¯Êý
-	compoundState();
+	compoundState(2);
 	if (nowWord.sym != RBRACE)
 		error(14, "");
 	else
