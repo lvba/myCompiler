@@ -67,12 +67,19 @@ struct interMediaTab {
 struct interMediaTab imTable;
 struct mipsAsm {//存储mips汇编的结构
 	string instr = "";
-	char type = 'N';//R, I, J
 	string r1 = "";
 	string r2 = "";
 	string r3 = "";
 };
-vector<struct mipsAsm> mipsTable;
+vector<struct mipsAsm*> mipsTable;
+struct basicBlock {//基本块的数据结构
+	int blockNum;
+	vector<int> codes;//基本块中的代码在imTable中的下标
+	vector<struct basicBlock*> prevBlocks;
+	vector<struct basicBlock*> nextBlocks;
+};
+typedef struct basicBlock* block;
+vector<block> blockGraph;
 
 //全局共享常量定义
 extern const int maxLineLen = 200;

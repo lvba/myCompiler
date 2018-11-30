@@ -36,6 +36,9 @@
     <ClCompile Include="genMipsCode.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="optimize.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global.h">

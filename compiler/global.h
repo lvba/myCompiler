@@ -44,7 +44,7 @@ struct sym {
 	int type; //0-int，1-char，2-void（当type为函数时）
 	int size; // 数组的维数或者函数的参数个数
 	int spaceLv; // 该标识符的作用域层次
-	int addr; //对于变量则填入变量在运行栈中存储单元的位移，常量则填入常量表中登录的位置，对于常量则直接填入值
+	int addr; //变量和函数变量填入其在mips运行栈中相对memory的偏移，数组填入其第一个元素的偏移
 };
 struct symtab {
 	struct sym syms[5000];
@@ -68,12 +68,19 @@ struct polishNote {//负责每一个表达式的后缀表达式计算与存储
 };
 struct mipsAsm {//存储mips汇编的结构
 	string instr;
-	char type;//R, I, J
 	string r1;
 	string r2;
 	string r3;
 };
-extern vector<struct mipsAsm> mipsTable;
+extern vector<struct mipsAsm*> mipsTable;
+struct basicBlock {//基本块的数据结构
+	int blockNum;
+	vector<int> codes;//基本块中的代码在imTable中的下标
+	vector<struct basicBlock*> prevBlocks;
+	vector<struct basicBlock*> nextBlocks;
+};
+typedef struct basicBlock* block;
+extern vector<block> blockGraph;
 
 //全局共享常量声明
 extern const int maxLineLen;
@@ -96,6 +103,7 @@ int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);
 int searchSymTable(string name, int object);
+int searchWithLevel(string name, int object, int nowLevel);
 void genInterMedia(interType type, string p1, string p2, string p3, string p4);
 string genLabel();
 string genTemp();

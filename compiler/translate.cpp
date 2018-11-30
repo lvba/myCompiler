@@ -88,8 +88,16 @@ bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr
 		symTable.syms[symTable.top].size = size;
 		symTable.syms[symTable.top].spaceLv = spLv;
 		symTable.syms[symTable.top].addr = addr;
-		if (obj == 4)
+		if (obj == 4) {
+			for (int i = 0; i < symTable.funcInd.size(); ++i) {
+				if (symTable.syms[symTable.funcInd[i]].name == name &&
+					symTable.syms[symTable.funcInd[i]].type == type) {
+					error(43, "");
+					break;
+				}
+			}
 			symTable.funcInd.push_back(symTable.top);
+		}		
 		++symTable.top;
 		return true;
 	}
@@ -118,6 +126,26 @@ int searchSymTable(string name, int object) //返回在符号表中的下标
 		if (symTable.syms[symTable.funcInd[i]].name == name &&
 			symTable.syms[symTable.funcInd[i]].object == object)
 			return symTable.funcInd[i];
+	}
+	return -1;
+}
+
+int searchWithLevel(string name, int object, int nowLevel)//查指定level的变量
+{
+	if (nowLevel == 0) {
+		for (int i = 0; symTable.syms[i + 1].spaceLv == 0; ++i) {
+			if (symTable.syms[i + 1].spaceLv != 0)
+				return -1;
+			if (symTable.syms[i].name == name && symTable.syms[i].object == object)
+				return i;
+		}
+	} else {
+		int index = symTable.funcInd[nowLevel - 1] + 1;
+		while (index < symTable.top && symTable.syms[index].spaceLv == nowLevel) {
+			if (symTable.syms[index].name == name && symTable.syms[index].object == object)
+				return index;
+			++index;
+		}
 	}
 	return -1;
 }

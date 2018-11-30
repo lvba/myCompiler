@@ -118,6 +118,7 @@
     <ClCompile Include="global.cpp" />
     <ClCompile Include="grammarParse.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="optimize.cpp" />
     <ClCompile Include="translate.cpp" />
     <ClCompile Include="wordParse.cpp" />
   </ItemGroup>

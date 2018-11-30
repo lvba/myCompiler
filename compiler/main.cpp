@@ -15,6 +15,7 @@ void init()
 	imTable.ind = 0;
 }
 
+
 //编译器主函数
 int main()
 {
@@ -26,8 +27,8 @@ int main()
 	program();
 	cout << "语法处理结束！" << endl;
 	//打印中间式表
-	printImTable();
+	//printImTable();
 	//生成mips汇编
-	genMips();
+	//genMips();
 	return 0;
 }

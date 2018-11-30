@@ -683,9 +683,10 @@ void program()
 	test(LPARENT, 11);
 	test(RPARENT, 12);
 	test(LBRACE, 13);
-	nowLevel = 1000;//默认main函数的level为1000
+	nowLevel = (++addLevel);
 	//将main函数登录入符号表
 	insertSymTable("main", 4, 2, 0, 0, 0);
+	genInterMedia(FUNC, "void", "main", "()", "");
 	getWord();//预读
 	compoundState(2);
 	if (nowWord.sym != RBRACE)
