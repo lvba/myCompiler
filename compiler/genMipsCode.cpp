@@ -98,7 +98,7 @@ void initial()//初始化生成代码
 	genOneCode(".text", "", "", "");
 	//为三个.space地址赋寄存器
 	genOneCode("la", "$s0", "memory", "");
-	genOneCode("la", "$sp", "stack", "");
+	genOneCode("la", "$s2", "stack", "");
 	genOneCode("la", "$s1", "temp", "");
 	//跳转到main函数
 	genOneCode("j", "voidmain", "", "");
@@ -346,35 +346,37 @@ void genMips()
 						int maxTempNum;
 						is >> maxTempNum;
 							//保存函数参数，普通变量，数组变量
-						while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
-							if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
-								int addr = symTable.syms[callFuncInd].addr;
-								genOneCode("lw", "$t0", to_string(addr) + "($s0)", "");
-								genOneCode("sw", "$t0", to_string(sp) + "($sp)", "");
-								sp += 4;
-							}
-							if (symTable.syms[callFuncInd].object == 3) { //保护数组
-								int addr = symTable.syms[callFuncInd].addr;
-								int dimen = symTable.syms[callFuncInd].size;
-								for (int ind = 0; ind < dimen; ++ind) {
-									int ad = addr + ind * 4;
-									genOneCode("lw", "$t0", to_string(ad) + "($s0)", "");
-									genOneCode("sw", "$t0", to_string(sp) + "($sp)", "");
+						if (nowLevel != symTable.funcInd.size()) {
+							while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									int addr = symTable.syms[callFuncInd].addr;
+									genOneCode("lw", "$t0", to_string(addr) + "($s0)", "");
+									genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
 									sp += 4;
 								}
+								if (symTable.syms[callFuncInd].object == 3) { //保护数组
+									int addr = symTable.syms[callFuncInd].addr;
+									int dimen = symTable.syms[callFuncInd].size;
+									for (int ind = 0; ind < dimen; ++ind) {
+										int ad = addr + ind * 4;
+										genOneCode("lw", "$t0", to_string(ad) + "($s0)", "");
+										genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
+										sp += 4;
+									}
+								}
+								++callFuncInd;
 							}
-							++callFuncInd;
-						}
+						}						
 							//保存_TEMP变量
 						for (int tempInd = 0; tempInd < maxTempNum; ++tempInd) {
 							genOneCode("lw", "$t0", to_string(4 * tempInd) + "($s1)", "");
-							genOneCode("sw", "$t0", to_string(sp) + "($sp)", "");
+							genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
 							sp += 4;
 						}
 							//保存ra和v0寄存器
-						genOneCode("sw", "$ra", to_string(sp) + "($sp)", "");
+						genOneCode("sw", "$ra", to_string(sp) + "($s2)", "");
 						sp += 4;
-						genOneCode("sw", "$v0", to_string(sp) + "($sp)", "");
+						genOneCode("sw", "$v0", to_string(sp) + "($s2)", "");
 						sp += 4;
 						//再PUSH参数
 						int pushInd = paramStack.size() - paramNum;
@@ -390,37 +392,39 @@ void genMips()
 						genOneCode("jal", tempArr[symTable.syms[funcInd].type] + funcName, "", "");
 						//最后恢复现场，反向恢复所有数据
 						sp -= 4;
-						genOneCode("lw", "$v0", to_string(sp) + "($sp)", "");
+						genOneCode("lw", "$v0", to_string(sp) + "($s2)", "");
 						sp -= 4;
-						genOneCode("lw", "$ra", to_string(sp) + "($sp)", "");
+						genOneCode("lw", "$ra", to_string(sp) + "($s2)", "");
 						sp -= 4;
 							//恢复_TEMP变量
 						for (int tempInd = maxTempNum - 1; tempInd >= 0; --tempInd) {
-							genOneCode("lw", "$t0", to_string(sp) + "($sp)", "");
+							genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
 							sp -= 4;
 							genOneCode("sw", "$t0", to_string(tempInd * 4) + "($s1)", "");
 						}
 							//恢复函数参数，普通变量，数组变量
-						--callFuncInd;//此时指向函数内最后一个变量
-						while (symTable.syms[callFuncInd].spaceLv == nowLevel) {
-							if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
-								int addr = symTable.syms[callFuncInd].addr;
-								genOneCode("lw", "$t0", to_string(sp) + "($sp)", "");
-								sp -= 4;
-								genOneCode("sw", "$t0", to_string(addr) + "($s0)", "");
-							}
-							if (symTable.syms[callFuncInd].object == 3) { //保护数组
-								int addr = symTable.syms[callFuncInd].addr;
-								int dimen = symTable.syms[callFuncInd].size;
-								for (int ind = dimen - 1; ind >= 0; --ind) {
-									int ad = addr + 4 * ind;
-									genOneCode("lw", "$t0", to_string(sp) + "($sp)", "");
+						if (nowLevel != symTable.funcInd.size()) {
+							--callFuncInd;//此时指向函数内最后一个变量
+							while (symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									int addr = symTable.syms[callFuncInd].addr;
+									genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
 									sp -= 4;
-									genOneCode("sw", "$t0", to_string(ad) + "($s0)", "");
+									genOneCode("sw", "$t0", to_string(addr) + "($s0)", "");
 								}
+								if (symTable.syms[callFuncInd].object == 3) { //保护数组
+									int addr = symTable.syms[callFuncInd].addr;
+									int dimen = symTable.syms[callFuncInd].size;
+									for (int ind = dimen - 1; ind >= 0; --ind) {
+										int ad = addr + 4 * ind;
+										genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
+										sp -= 4;
+										genOneCode("sw", "$t0", to_string(ad) + "($s0)", "");
+									}
+								}
+								--callFuncInd;
 							}
-							--callFuncInd;
-						}
+						}						
 						sp += 4;
 					}
 				}
