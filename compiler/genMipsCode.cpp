@@ -121,6 +121,7 @@ void genMips()
 					error(44, "");
 				else {
 					symTable.syms[find].addr = memOffset;
+					//cout << imTable.exprs[i].expr[2] << "的地址为" << memOffset << endl;
 					memOffset += 4;
 				}
 				break;
@@ -225,6 +226,7 @@ void genMips()
 					error(44, "");
 				else {
 					symTable.syms[find].addr = memOffset;
+					//cout << imTable.exprs[i].expr[2] << "的地址为" << memOffset << endl;
 					memOffset += 4;
 				}
 				break;
@@ -237,6 +239,7 @@ void genMips()
 					error(44, "");
 				else {
 					symTable.syms[find].addr = memOffset;
+					//cout << imTable.exprs[i].expr[2] << "的地址为" << memOffset << endl;
 					istringstream is(imTable.exprs[i].expr[3]);
 					int dimen;
 					is >> dimen;
@@ -377,8 +380,6 @@ void genMips()
 							//保存ra和v0寄存器
 						genOneCode("sw", "$ra", to_string(sp) + "($s2)", "");
 						sp += 4;
-						genOneCode("sw", "$v0", to_string(sp) + "($s2)", "");
-						sp += 4;
 						//再PUSH参数
 						int pushInd = paramStack.size() - paramNum;
 						for (int paraInd = funcInd + 1; symTable.syms[paraInd].object == 2; ++paraInd) {
@@ -392,8 +393,6 @@ void genMips()
 						//再jal调用函数
 						genOneCode("jal", tempArr[symTable.syms[funcInd].type] + funcName, "", "");
 						//最后恢复现场，反向恢复所有数据
-						sp -= 4;
-						genOneCode("lw", "$v0", to_string(sp) + "($s2)", "");
 						sp -= 4;
 						genOneCode("lw", "$ra", to_string(sp) + "($s2)", "");
 						sp -= 4;
@@ -590,13 +589,13 @@ void genMips()
 					}
 					//查变量c，赋值给$t0
 					findAndSet("$t0", 3, i);
-					find = searchAllLevel(imTable.exprs[i].expr[1], nowLevel);
-					if (find == -1)
+					int find2 = searchAllLevel(imTable.exprs[i].expr[1], nowLevel);
+					if (find2 == -1)
 						error(30, "");
 					else
-						if (symTable.syms[find].object != 3)
+						if (symTable.syms[find2].object != 3)
 							error(46, "");
-					int addr = symTable.syms[find].addr;
+					int addr = symTable.syms[find2].addr;
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("li", "$t2", to_string(addr), "");
