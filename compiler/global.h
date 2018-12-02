@@ -114,3 +114,4 @@ void printImTable();
 void program();
 void genMips();
 void printMips();
+void printEachIm(int i);

@@ -113,6 +113,7 @@ void genMips()
 		string label;
 		int isTEMP;
 		struct intermedia jump;
+		//printEachIm(i);
 		switch (imTable.exprs[i].type) {
 			case VAR:
 				find = searchWithLevel(imTable.exprs[i].expr[2], 1, nowLevel);
@@ -255,7 +256,7 @@ void genMips()
 							asciiz->r1 = ".asciiz";
 							asciiz->r2 = param.expr[1];
 							asciiz->r3 = "";
-							mipsTable.insert(mipsTable.begin() + 1, asciiz);
+							mipsTable.insert(mipsTable.begin() + 4, asciiz);
 							//Êä³ö×Ö·û´®
 							genOneCode("li", "$v0", "4", "");
 							genOneCode("la", "$a0", printStr, "");
@@ -286,7 +287,7 @@ void genMips()
 						asciiz->r1 = ".asciiz";
 						asciiz->r2 = param.expr[1];
 						asciiz->r3 = "";
-						mipsTable.insert(mipsTable.begin() + 1, asciiz);
+						mipsTable.insert(mipsTable.begin() + 4, asciiz);
 						genOneCode("li", "$v0", "4", "");
 						genOneCode("la", "$a0", printStr, "");
 						genOneCode("syscall", "", "", "");

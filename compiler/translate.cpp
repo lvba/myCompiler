@@ -57,6 +57,14 @@ void printImTable()
 	}	
 }
 
+void printEachIm(int i)
+{
+	cout << imTable.exprs[i].expr[0] << " "
+		<< imTable.exprs[i].expr[1] << " "
+		<< imTable.exprs[i].expr[2] << " "
+		<< imTable.exprs[i].expr[3] << endl;
+}
+
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr)
 {
 	if (symTable.top >= maxSymNum) { //·ûºÅ±íÒç³ö
