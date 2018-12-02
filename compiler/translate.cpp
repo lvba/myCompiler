@@ -8,7 +8,6 @@
 using namespace std;
 
 static int labelNum = 0;
-static int tempNum = 0;
 
 void genInterMedia(interType type, string p1, string p2, string p3, string p4)
 {
@@ -37,22 +36,24 @@ string genLabel()
 
 string genTemp()//生成临时变量名
 {
-	string temp = "_TEMP" + to_string(tempNum++);
+	string temp = "_TEMP" + to_string(staticTempNum++);
 	return temp;
 }
 
 void resetTemp()
 {
-	tempNum = 0;
+	staticTempNum = 0;
 }
 
 void printImTable()
 {
 	for (int i = 0; i < imTable.ind; ++i) {
-		cout << imTable.exprs[i].expr[0] << " "
-			<< imTable.exprs[i].expr[1] << " "
-			<< imTable.exprs[i].expr[2] << " "
-			<< imTable.exprs[i].expr[3] << endl;
+		//if (imTable.exprs[i].type == PUSH) {
+			cout << imTable.exprs[i].expr[0] << " "
+				<< imTable.exprs[i].expr[1] << " "
+				<< imTable.exprs[i].expr[2] << " "
+				<< imTable.exprs[i].expr[3] << endl;
+		//}	
 	}	
 }
 
@@ -103,28 +104,27 @@ bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr
 	}
 }
 
-int searchSymTable(string name, int object) //返回在符号表中的下标
+int searchSymTable(string name, int nowLevel) //返回在符号表中的下标
 {
 	int ind = symTable.top - 1;
 	if (ind < 0)
 		return -1;
 	//查当前作用域
 	while (symTable.syms[ind].spaceLv == nowLevel) {
-		if (symTable.syms[ind].name == name && symTable.syms[ind].object == object)
+		if (symTable.syms[ind].name == name)
 			return ind;
 		--ind;
 	}
 	//当前作用域查不到则查全局作用域
 	ind = 0;
 	while (symTable.syms[ind].spaceLv == 0) {
-		if (symTable.syms[ind].name == name && symTable.syms[ind].object == object)
+		if (symTable.syms[ind].name == name)
 			return ind;
 		++ind;
 	}
 	//查函数下标表
 	for (int i = 0; i < symTable.funcInd.size(); ++i) {
-		if (symTable.syms[symTable.funcInd[i]].name == name &&
-			symTable.syms[symTable.funcInd[i]].object == object)
+		if (symTable.syms[symTable.funcInd[i]].name == name)
 			return symTable.funcInd[i];
 	}
 	return -1;
@@ -147,5 +147,25 @@ int searchWithLevel(string name, int object, int nowLevel)//查指定level的变量
 			++index;
 		}
 	}
+	return -1;
+}
+
+int searchAllLevel(string name, int nowLevel)
+{
+	//查当前作用域
+	int index = symTable.funcInd[nowLevel - 1] + 1;
+	while (index < symTable.top && symTable.syms[index].spaceLv == nowLevel) {
+		if (symTable.syms[index].name == name)
+			return index;
+		++index;
+	}
+	//当前作用域未查到则查全局作用域
+	for (int i = 0; symTable.syms[i + 1].spaceLv == 0; ++i) {
+		if (symTable.syms[i + 1].spaceLv != 0)
+			return -1;
+		if (symTable.syms[i].name == name)
+			return i;
+	}
+
 	return -1;
 }

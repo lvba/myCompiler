@@ -18,6 +18,7 @@ extern int nowLevel;
 extern int addLevel;
 extern char nowCh;
 extern int errorCnt;
+extern int staticTempNum;
 
 extern enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
@@ -102,8 +103,9 @@ void getWord();
 int error(int errCode, string errInfo);
 int getInt();
 bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr);
-int searchSymTable(string name, int object);
+int searchSymTable(string name, int nowLevel);
 int searchWithLevel(string name, int object, int nowLevel);
+int searchAllLevel(string name, int nowLevel);
 void genInterMedia(interType type, string p1, string p2, string p3, string p4);
 string genLabel();
 string genTemp();
@@ -111,3 +113,4 @@ void resetTemp();
 void printImTable();
 void program();
 void genMips();
+void printMips();

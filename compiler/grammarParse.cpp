@@ -40,7 +40,7 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊý£¬·Ö±ðÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 			getWord();
 			if (nowWord.sym == LBRACK) { //Êý×éÈ¡ÏÂ±êµÄÇé¿ö
 				//¼ì²éÊÇ·ñÒÑ¶¨Òå
-				int find = searchSymTable(idName, 3);
+				int find = searchSymTable(idName, nowLevel);
 				if (find == -1) {
 					error(29, "");
 					find = 0;
@@ -65,7 +65,7 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊý£¬·Ö±ðÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 			} else {
 				if (nowWord.sym == LPARENT) { //ÓÐ·µ»ØÖµµÄº¯Êýµ÷ÓÃ
 					//¼ì²é±äÁ¿ÃûÊÇ·ñºÏ·¨
-					int find = searchSymTable(idName, 4);
+					int find = searchSymTable(idName, nowLevel);
 					if (find == -1) {
 						error(29, "");
 						find = 0;
@@ -109,22 +109,24 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊý£¬·Ö±ðÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 						error(12, "factor");
 						return make_pair("", -1);
 					} else {
-						genInterMedia(CALL, "call", idName, "", "");
+						genInterMedia(CALL, "call", idName, to_string(staticTempNum), "");
 						string retName = genTemp();
-						genInterMedia(VARASS, retName, "RET", "", "");
+						genInterMedia(VARASS, retName, "_RET", "", "");
 						getWord();
 						return make_pair(retName, symTable.syms[find].type);
 					}	
 				} else { //Îª×îÆÕÍ¨µÄ±êÊ¶·û£¨¼´ÆÕÍ¨±äÁ¿»ò³£Á¿£©
-					int find = searchSymTable(idName, 1);
-					if (find == -1)
-						find = searchSymTable(idName, 0);
-					if (find == -1)
-						find = searchSymTable(idName, 2);
+					int find = searchSymTable(idName, nowLevel);
 					if (find == -1) {
 						error(29, "");
 						find = 0;
-					}
+					} else {
+						if (symTable.syms[find].object != 0 &&
+							symTable.syms[find].object != 1 &&
+							symTable.syms[find].object != 2) {
+							error(32, "");
+						}
+					}						
 					if (symTable.syms[find].object == 0) {//³£Á¿Ìæ»»
 						if(symTable.syms[find].type == 0)
 							return make_pair(to_string(symTable.syms[find].addr), 0);
@@ -275,7 +277,7 @@ void statement(int funcType)
 	symbol op;
 	string arrDimen;
 	pair<string, int> exprP;
-	int exprType, find;
+	int exprType, find, scanfParam;
 	switch (nowWord.sym) {
 		case IFSY: //if...elseÓï¾ä
 			ifLabel1 = genLabel();
@@ -331,13 +333,13 @@ void statement(int funcType)
 				return;
 			}
 			idName = nowWord.str;
-			find = searchSymTable(idName, 1);
-			if(find == -1)
-				find = searchSymTable(idName, 2);
+			find = searchSymTable(idName, nowLevel);
 			if (find == -1) {
 				error(29, "");
 				find = 0;
-			}	
+			} else
+				if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+					error(32, "");
 			if(test(ASSIGN, 2))
 				getWord();
 			exprP = expression(0);
@@ -364,13 +366,13 @@ void statement(int funcType)
 				return;
 			} 
 			idName2 = nowWord.str;
-			find = searchSymTable(idName2, 1);
-			if (find == -1)
-				find = searchSymTable(idName2, 2);
+			find = searchSymTable(idName2, nowLevel);
 			if (find == -1) {
 				error(29, "");
 				find = 0;
-			}				
+			} else
+				if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+					error(32, "");
 			if (symTable.syms[find].type != 0)
 				error(37, "");
 			if(test(ASSIGN, 2))
@@ -380,13 +382,13 @@ void statement(int funcType)
 				return;
 			} 
 			idName3 = nowWord.str;
-			find = searchSymTable(idName3, 1);
-			if (find == -1)
-				find = searchSymTable(idName3, 2);
+			find = searchSymTable(idName3, nowLevel);
 			if (find == -1) {
 				error(29, "");
 				find = 0;
-			}			
+			} else
+				if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+					error(32, "");
 			getWord();
 			if (nowWord.sym != PLUS && nowWord.sym != MINUS) {
 				error(18, "for");
@@ -420,13 +422,13 @@ void statement(int funcType)
 			getWord();
 			if (nowWord.sym == ASSIGN || nowWord.sym == LBRACK) { //¸³ÖµÓï¾ä
 				if (nowWord.sym == ASSIGN) {
-					int find = searchSymTable(idName, 1);
-					if (find == -1)
-						find = searchSymTable(idName, 2);
+					int find = searchSymTable(idName, nowLevel);
 					if (find == -1) {
 						error(29, "");
 						find = 0;
-					}
+					} else
+						if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+							error(32, "");
 					getWord();
 					pair<string, int> exprP = expression(0);
 					exprRet = exprP.first;
@@ -442,7 +444,7 @@ void statement(int funcType)
 					}	
 					//cout << "ÕâÊÇÆÕÍ¨±äÁ¿µÄ¸³ÖµÓï¾ä" << endl;
 				} else {
-					int find = searchSymTable(idName, 3);
+					int find = searchSymTable(idName, nowLevel);
 					if (find == -1) {
 						error(29, "");
 						find = 0;
@@ -480,11 +482,13 @@ void statement(int funcType)
 					error(19, "");
 					return;
 				} else { //ÓÐ·µ»ØÖµºÍÎÞ·µ»ØÖµµÄº¯Êý
-					int find = searchSymTable(idName, 4);
+					int find = searchSymTable(idName, nowLevel);
 					if (find == -1) {
 						error(29, "");
 						find = 0;
-					}		
+					} else
+						if (symTable.syms[find].object != 4)
+							error(45, "");
 					//¼ì²é¸Ã×÷ÓÃÓòÖÐÊÇ·ñÓÐÍ¬ÃûµÄ±äÁ¿
 					int symInd = symTable.top - 1;
 					if (symInd >= 0)
@@ -525,38 +529,41 @@ void statement(int funcType)
 						if(test(SEMICOLON, 5))
 							getWord();
 					}
-					genInterMedia(CALL, "call", idName, "", "");
+					genInterMedia(CALL, "call", idName, to_string(staticTempNum), "");
 					resetTemp();
 					//cout << "ÕâÊÇÓÐ·µ»ØÖµ»òÕßÎÞ·µ»ØÖµµÄº¯Êýµ÷ÓÃ" << endl;
 				}
 			}
 			break;
 		case SCANFSY: //¶ÁÓï¾ä
+			scanfParam = 0;
 			if(test(LPARENT, 11))
 				getWord();
 			if (nowWord.sym != IDENT) {
 				error(1, "for");
 				return;
 			}
-			find = searchSymTable(nowWord.str, 1);
-			if (find == -1)
-				find = searchSymTable(nowWord.str, 2);
+			find = searchSymTable(nowWord.str, nowLevel);
 			if (find == -1) {
 				error(29, "");
 				find = 0;
-			}				
+			} else
+				if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+					error(32, "");
 			genInterMedia(PUSH, "push", nowWord.str, "", "");
+			++scanfParam;
 			getWord();
 			while (nowWord.sym == COMMA) {
 				getWord();
-				int find = searchSymTable(nowWord.str, 1);
-				if (find == -1)
-					find = searchSymTable(nowWord.str, 2);
+				int find = searchSymTable(nowWord.str, nowLevel);
 				if (find == -1) {
 					error(29, "");
 					find = 0;
-				}					
+				} else
+					if (symTable.syms[find].object != 1 && symTable.syms[find].object != 2)
+						error(32, "");
 				genInterMedia(PUSH, "push", nowWord.str, "", "");
+				++scanfParam;
 				getWord();
 			}
 			if (nowWord.sym != RPARENT) {
@@ -566,7 +573,7 @@ void statement(int funcType)
 				if(test(SEMICOLON, 5))
 					getWord();
 			}
-			genInterMedia(CALL, "call", "scanf", "", "");
+			genInterMedia(CALL, "call", "scanf", to_string(scanfParam), "");
 			//cout << "ÕâÊÇ¶ÁÓï¾ä" << endl;
 			break;
 		case PRINTFSY: //Ð´Óï¾ä
@@ -585,6 +592,7 @@ void statement(int funcType)
 					} else
 						test(SEMICOLON, 5);
 					getWord();
+					genInterMedia(CALL, "call", "printf", "2", "");
 				} else {//printf '('£¼×Ö·û´®£¾')'
 					if (nowWord.sym == RPARENT) {
 						if(test(SEMICOLON, 5))
@@ -593,8 +601,8 @@ void statement(int funcType)
 						error(20, "");
 						return;
 					}	
-				}
-				genInterMedia(CALL, "call", "printf", "", "");
+					genInterMedia(CALL, "call", "printf", "1", "");
+				}				
 			} else { //Ö»Êä³ö±í´ïÊ½
 				exprRet = expression(0).first;
 				genInterMedia(PUSH, "push", exprRet, "", "");
@@ -605,7 +613,7 @@ void statement(int funcType)
 					if(test(SEMICOLON, 5))
 						getWord();
 				}
-				genInterMedia(CALL, "call", "printf", "", "");
+				genInterMedia(CALL, "call", "printf", "1", "");
 			}
 			//cout << "ÕâÊÇÐ´Óï¾ä" << endl;
 			break;

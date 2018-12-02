@@ -15,7 +15,6 @@ void init()
 	imTable.ind = 0;
 }
 
-
 //编译器主函数
 int main()
 {
@@ -29,6 +28,9 @@ int main()
 	//打印中间式表
 	//printImTable();
 	//生成mips汇编
-	//genMips();
+	genMips();
+	//打印mips代码
+	printMips();
+	cout << "编译完成，共发现错误" << errorCnt << "个" << endl;
 	return 0;
 }

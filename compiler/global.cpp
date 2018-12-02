@@ -21,6 +21,7 @@ int nowLevel = 0;
 int addLevel = 0;
 char nowCh;
 int errorCnt = 0;
+int staticTempNum = 0;
 
 enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
