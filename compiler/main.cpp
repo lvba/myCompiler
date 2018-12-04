@@ -8,7 +8,6 @@
 using namespace std;
 
 static string filePath;
-
 void init()
 {
 	symTable.top = 0;

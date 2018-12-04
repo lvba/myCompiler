@@ -127,5 +127,4 @@ extern const symbol keySymbol[13] = {//关键字对应的类别码
 	VOIDSY,
 	WHILESY,
 };
-
 //全局共享函数定义

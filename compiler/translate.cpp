@@ -174,6 +174,5 @@ int searchAllLevel(string name, int nowLevel)
 		if (symTable.syms[i].name == name)
 			return i;
 	}
-
 	return -1;
 }

@@ -244,4 +244,5 @@ int error(int errCode, string errInfo)
 	printErrorMsg(errCode);
 	skip(errCode, errInfo);
 	return 0;
+
 }
