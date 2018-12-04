@@ -260,17 +260,8 @@ void genMips()
 							asciiz->r3 = "";
 							for (int strInd = 0; strInd < (asciiz->r2).size(); ++strInd) {
 								if (asciiz->r2[strInd] == '\\') {
-									if (strInd != (asciiz->r2).size() - 1) {
-										if (asciiz->r2[strInd + 1] == 'n' || asciiz->r2[strInd + 1] == 't') {
-											int tempStrInd = strInd;
-											for (int temp = strInd; temp >= 0 && asciiz->r2[temp] == '\\'; --temp) {
-												asciiz->r2.insert(strInd, "\\");
-												++tempStrInd;
-											}
-											++tempStrInd;
-											strInd = tempStrInd;
-										}								
-									}
+									asciiz->r2.insert(strInd, "\\");
+									++strInd;
 								}
 							}
 							mipsTable.insert(mipsTable.begin() + 4, asciiz);
@@ -306,17 +297,8 @@ void genMips()
 						asciiz->r3 = "";
 						for (int strInd = 0; strInd < (asciiz->r2).size(); ++strInd) {
 							if (asciiz->r2[strInd] == '\\') {
-								if (strInd != (asciiz->r2).size() - 1) {
-									if (asciiz->r2[strInd + 1] == 'n' || asciiz->r2[strInd + 1] == 't') {
-										int tempStrInd = strInd;
-										for (int temp = strInd; temp >= 0 && asciiz->r2[temp] == '\\'; --temp) {
-											asciiz->r2.insert(strInd, "\\");
-											++tempStrInd;
-										}
-										++tempStrInd;
-										strInd = tempStrInd;
-									}
-								}
+								asciiz->r2.insert(strInd, "\\");
+								++strInd;
 							}
 						}
 						mipsTable.insert(mipsTable.begin() + 4, asciiz);
