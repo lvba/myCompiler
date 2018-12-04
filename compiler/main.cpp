@@ -22,15 +22,17 @@ int main()
 	infile.open(filePath);
 	nextCh();//预先读入一个字符以启动词法处理程序
 	getWord();//预读一个单词
-			  //语法处理程序开始！
+	//语法处理程序开始！
 	program();
 	cout << "语法处理结束！" << endl;
-	//打印中间式表
-	//printImTable();
-	//生成mips汇编
-	genMips();
-	//打印mips代码
-	printMips();
+	if (errorCnt == 0) {
+		//打印中间式表
+		//printImTable();
+		//生成mips汇编
+		genMips();
+		//打印mips代码
+		printMips();
+	}
 	cout << "编译完成，共发现错误" << errorCnt << "个" << endl;
 	return 0;
 }

@@ -13,7 +13,6 @@ static vector<struct intermedia> condStack;//用于嵌套条件判断的栈
 static vector<int> paramStack;//用于函数变量的栈
 static int strNum = 0;
 static string printStr = "";
-static int sp = 0;
 
 void printMips()
 {
@@ -259,6 +258,21 @@ void genMips()
 							asciiz->r1 = ".asciiz";
 							asciiz->r2 = param.expr[1];
 							asciiz->r3 = "";
+							for (int strInd = 0; strInd < (asciiz->r2).size(); ++strInd) {
+								if (asciiz->r2[strInd] == '\\') {
+									if (strInd != (asciiz->r2).size() - 1) {
+										if (asciiz->r2[strInd + 1] == 'n' || asciiz->r2[strInd + 1] == 't') {
+											int tempStrInd = strInd;
+											for (int temp = strInd; temp >= 0 && asciiz->r2[temp] == '\\'; --temp) {
+												asciiz->r2.insert(strInd, "\\");
+												++tempStrInd;
+											}
+											++tempStrInd;
+											strInd = tempStrInd;
+										}								
+									}
+								}
+							}
 							mipsTable.insert(mipsTable.begin() + 4, asciiz);
 							//输出字符串
 							genOneCode("li", "$v0", "4", "");
@@ -290,6 +304,21 @@ void genMips()
 						asciiz->r1 = ".asciiz";
 						asciiz->r2 = param.expr[1];
 						asciiz->r3 = "";
+						for (int strInd = 0; strInd < (asciiz->r2).size(); ++strInd) {
+							if (asciiz->r2[strInd] == '\\') {
+								if (strInd != (asciiz->r2).size() - 1) {
+									if (asciiz->r2[strInd + 1] == 'n' || asciiz->r2[strInd + 1] == 't') {
+										int tempStrInd = strInd;
+										for (int temp = strInd; temp >= 0 && asciiz->r2[temp] == '\\'; --temp) {
+											asciiz->r2.insert(strInd, "\\");
+											++tempStrInd;
+										}
+										++tempStrInd;
+										strInd = tempStrInd;
+									}
+								}
+							}
+						}
 						mipsTable.insert(mipsTable.begin() + 4, asciiz);
 						genOneCode("li", "$v0", "4", "");
 						genOneCode("la", "$a0", printStr, "");
@@ -355,8 +384,8 @@ void genMips()
 								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
 									int addr = symTable.syms[callFuncInd].addr;
 									genOneCode("lw", "$t0", to_string(addr) + "($s0)", "");
-									genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
-									sp += 4;
+									genOneCode("sw", "$t0", "0($s2)", "");
+									genOneCode("addi", "$s2", "$s2", "4");
 								}
 								if (symTable.syms[callFuncInd].object == 3) { //保护数组
 									int addr = symTable.syms[callFuncInd].addr;
@@ -364,8 +393,8 @@ void genMips()
 									for (int ind = 0; ind < dimen; ++ind) {
 										int ad = addr + ind * 4;
 										genOneCode("lw", "$t0", to_string(ad) + "($s0)", "");
-										genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
-										sp += 4;
+										genOneCode("sw", "$t0", "0($s2)", "");
+										genOneCode("addi", "$s2", "$s2", "4");
 									}
 								}
 								++callFuncInd;
@@ -374,12 +403,12 @@ void genMips()
 							//保存_TEMP变量
 						for (int tempInd = 0; tempInd < maxTempNum; ++tempInd) {
 							genOneCode("lw", "$t0", to_string(4 * tempInd) + "($s1)", "");
-							genOneCode("sw", "$t0", to_string(sp) + "($s2)", "");
-							sp += 4;
+							genOneCode("sw", "$t0", "0($s2)", "");
+							genOneCode("addi", "$s2", "$s2", "4");
 						}
 							//保存ra和v0寄存器
-						genOneCode("sw", "$ra", to_string(sp) + "($s2)", "");
-						sp += 4;
+						genOneCode("sw", "$ra", "0($s2)", "");
+						genOneCode("addi", "$s2", "$s2", "4");
 						//再PUSH参数
 						int pushInd = paramStack.size() - paramNum;
 						for (int paraInd = funcInd + 1; symTable.syms[paraInd].object == 2; ++paraInd) {
@@ -393,13 +422,13 @@ void genMips()
 						//再jal调用函数
 						genOneCode("jal", tempArr[symTable.syms[funcInd].type] + funcName, "", "");
 						//最后恢复现场，反向恢复所有数据
-						sp -= 4;
-						genOneCode("lw", "$ra", to_string(sp) + "($s2)", "");
-						sp -= 4;
+						genOneCode("addi", "$s2", "$s2", "-4");
+						genOneCode("lw", "$ra", "0($s2)", "");
+						genOneCode("addi", "$s2", "$s2", "-4");
 							//恢复_TEMP变量
 						for (int tempInd = maxTempNum - 1; tempInd >= 0; --tempInd) {
-							genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
-							sp -= 4;
+							genOneCode("lw", "$t0", "0($s2)", "");
+							genOneCode("addi", "$s2", "$s2", "-4");
 							genOneCode("sw", "$t0", to_string(tempInd * 4) + "($s1)", "");
 						}
 							//恢复函数参数，普通变量，数组变量
@@ -408,8 +437,8 @@ void genMips()
 							while (symTable.syms[callFuncInd].spaceLv == nowLevel) {
 								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
 									int addr = symTable.syms[callFuncInd].addr;
-									genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
-									sp -= 4;
+									genOneCode("lw", "$t0", "0($s2)", "");
+									genOneCode("addi", "$s2", "$s2", "-4");
 									genOneCode("sw", "$t0", to_string(addr) + "($s0)", "");
 								}
 								if (symTable.syms[callFuncInd].object == 3) { //保护数组
@@ -417,15 +446,15 @@ void genMips()
 									int dimen = symTable.syms[callFuncInd].size;
 									for (int ind = dimen - 1; ind >= 0; --ind) {
 										int ad = addr + 4 * ind;
-										genOneCode("lw", "$t0", to_string(sp) + "($s2)", "");
-										sp -= 4;
+										genOneCode("lw", "$t0", "0($s2)", "");
+										genOneCode("addi", "$s2", "$s2", "-4");
 										genOneCode("sw", "$t0", to_string(ad) + "($s0)", "");
 									}
 								}
 								--callFuncInd;
 							}
 						}						
-						sp += 4;
+						genOneCode("addi", "$s2", "$s2", "4");
 					}
 				}
 				break;
@@ -455,6 +484,10 @@ void genMips()
 						}
 					}
 				}
+				if (nowLevel != symTable.funcInd.size())
+					genOneCode("jr", "$ra", "", "");
+				else
+					genOneCode("j", "endofprog", "", "");
 				break;
 			case COMPARE:
 				//查第一个操作数，将其存入$t0中
@@ -617,4 +650,6 @@ void genMips()
 				break;
 		}
 	}
+	//程序末尾
+	genOneCode("endofprog:", "", "", "");
 }

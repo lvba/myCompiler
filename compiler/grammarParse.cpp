@@ -185,7 +185,7 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊı£¬·Ö±ğÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 				return make_pair("", -1);
 			} else {
 				getWord();
-				return make_pair(retName, p.second);
+				return make_pair(retName, 0);//¼ÓÁËÀ¨ºÅ¿ÉÒÔÇ¿ÖÆ×ª»»ÎªÕûĞÍ
 			}	
 			break;
 	}
