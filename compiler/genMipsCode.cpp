@@ -13,25 +13,36 @@ static vector<struct intermedia> condStack;//用于嵌套条件判断的栈
 static vector<int> paramStack;//用于函数变量的栈
 static int strNum = 0;
 static string printStr = "";
+static ofstream ofile;
 
 void printMips()
 {
+	ofile.open("../mipsCode.txt");
 	for (int i = 0; i < mipsTable.size(); ++i) {
 		if (mipsTable[i]->r1 == ".space" || mipsTable[i]->r1 == ".asciiz") {
 			cout << mipsTable[i]->instr << " " 
 				 << mipsTable[i]->r1 << " " 
 				 << mipsTable[i]->r2 << endl;
+			ofile << mipsTable[i]->instr << " "
+				<< mipsTable[i]->r1 << " "
+				<< mipsTable[i]->r2 << endl;
 		} else {
 			cout << mipsTable[i]->instr;
+			ofile << mipsTable[i]->instr;
 			if (mipsTable[i]->r1 != "") {
 				cout << " "<< mipsTable[i]->r1;
+				ofile << " " << mipsTable[i]->r1;
 				if (mipsTable[i]->r2 != "") {
 					cout << ", " << mipsTable[i]->r2;
-					if(mipsTable[i]->r3 != "")
+					ofile << ", " << mipsTable[i]->r2;
+					if (mipsTable[i]->r3 != "") {
 						cout << ", " << mipsTable[i]->r3;
+						ofile << ", " << mipsTable[i]->r3;
+					}					
 				}
 			}
 			cout << endl;
+			ofile << endl;
 		}
 	}
 }
@@ -587,6 +598,7 @@ void genMips()
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("li", "$t2", to_string(addr), "");
+					genOneCode("add", "$t2", "$t2", "$s0");
 					genOneCode("add", "$t2", "$t2", "$t0");
 					genOneCode("sw", "$t1", "0($t2)", "");
 				} else { //a = b[]c
@@ -614,6 +626,7 @@ void genMips()
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("add", "$t0", "$t0", "$t0");
 					genOneCode("li", "$t2", to_string(addr), "");
+					genOneCode("add", "$t2", "$t2", "$s0");
 					genOneCode("add", "$t2", "$t2", "$t0");
 					//将b[c]的值存入$t1
 					genOneCode("lw", "$t1", "0($t2)", "");

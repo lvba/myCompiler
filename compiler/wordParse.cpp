@@ -21,10 +21,12 @@ void printWordInfo() {
 void nextCh()
 {
 	if (lineCnt == 0) {
-		getline(infile, line);
-		lastRow = row;
-		++row;
-		lineLen = line.size();
+		do {
+			getline(infile, line);
+			lastRow = row;
+			++row;
+			lineLen = line.size();
+		} while (lineLen == 0);
 	}
 	lastLineCnt = lineCnt;
 	nowCh = line[lineCnt++];

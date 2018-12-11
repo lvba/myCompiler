@@ -1,0 +1,1214 @@
+.data
+memory: .space 5000
+stack: .space 5000
+temp: .space 1000
+STRING39: .asciiz "  "
+STRING38: .asciiz "scan4="
+STRING37: .asciiz "  "
+STRING36: .asciiz "scan3="
+STRING35: .asciiz "  "
+STRING34: .asciiz "scan2="
+STRING33: .asciiz "  "
+STRING32: .asciiz "scan1="
+STRING31: .asciiz "  "
+STRING30: .asciiz "var2="
+STRING29: .asciiz "  "
+STRING28: .asciiz "var1="
+STRING27: .asciiz "  "
+STRING26: .asciiz "temp="
+STRING25: .asciiz "  "
+STRING24: .asciiz "_="
+STRING23: .asciiz "  "
+STRING22: .asciiz "i3="
+STRING21: .asciiz "  "
+STRING20: .asciiz "i2="
+STRING19: .asciiz "  "
+STRING18: .asciiz "i1="
+STRING17: .asciiz "  "
+STRING16: .asciiz "global="
+STRING15: .asciiz "  "
+STRING14: .asciiz "q="
+STRING13: .asciiz "  "
+STRING12: .asciiz "r="
+STRING11: .asciiz "\\\\\\\\\\nNow output all initialized variables!\\\\\\"
+STRING10: .asciiz "\\my age is:\\n"
+STRING9: .asciiz "con4!=CON4"
+STRING8: .asciiz "should not be output!"
+STRING7: .asciiz "3>=2"
+STRING6: .asciiz "3 is not <= 2"
+STRING5: .asciiz "should not be output"
+STRING4: .asciiz "2!=3"
+STRING3: .asciiz "should not be output"
+STRING2: .asciiz "no"
+STRING1: .asciiz "yes"
+STRING0: .asciiz "hello world!"
+.text
+la $s0, memory
+la $s2, stack
+la $s1, temp
+j voidmain
+intfunc0:
+li $t0, 5
+sw $t0, 1060($s0)
+lw $v0, 1060($s0)
+jr $ra
+jr $ra
+intfunc1:
+li $t0, 5
+sw $t0, 1076($s0)
+li $t0, 3
+lw $t1, 1076($s0)
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+lw $t1, 1076($s0)
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+sw $t0, 1080($s0)
+lw $t0, 1080($s0)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+lw $t1, 1072($s0)
+sub $t0, $t0, $t1
+sw $t0, 4($s1)
+lw $v0, 4($s1)
+jr $ra
+jr $ra
+charfunc2:
+li $t0, 10
+sw $t0, 1096($s0)
+li $t0, 'A'
+sw $t0, 1092($s0)
+lw $t0, 1096($s0)
+li $t1, 10
+bne $t0, $t1, LABEL0
+lw $t0, 1092($s0)
+li $t1, 32
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 1096($s0)
+lw $v0, 1092($s0)
+jr $ra
+LABEL0:
+jr $ra
+intfactor:
+lw $t0, 1100($s0)
+li $t1, 1
+bne $t0, $t1, LABEL1
+li $v0, 1
+jr $ra
+j LABEL2
+LABEL1:
+lw $t0, 1100($s0)
+li $t1, 1
+sub $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 1100($s0)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 0($s1)
+sw $t0, 1100($s0)
+jal intfactor
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 1100($s0)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+lw $t1, 1100($s0)
+mult $t0, $t1
+mflo $t0
+sw $t0, 8($s1)
+lw $v0, 8($s1)
+jr $ra
+LABEL2:
+jr $ra
+voidfunc3:
+li $v0, 4
+la $a0, STRING0
+syscall
+jr $ra
+voidfunc4:
+lw $t0, 1104($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 1104($s0)
+jr $ra
+jr $ra
+voidadd:
+lw $t0, 8($s0)
+li $t1, 5
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 8($s0)
+jr $ra
+voidempty:
+jr $ra
+voidmain:
+li $t0, -1
+li $t1, 100
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 8($s0)
+li $v0, 5
+syscall
+sw $v0, 1124($s0)
+li $v0, 5
+syscall
+sw $v0, 1128($s0)
+li $v0, 5
+syscall
+sw $v0, 1132($s0)
+li $v0, 5
+syscall
+sw $v0, 1136($s0)
+li $v0, 5
+syscall
+sw $v0, 1140($s0)
+li $v0, 5
+syscall
+sw $v0, 1144($s0)
+li $v0, 5
+syscall
+sw $v0, 1148($s0)
+li $v0, 5
+syscall
+sw $v0, 1152($s0)
+li $v0, 12
+syscall
+sw $v0, 1160($s0)
+li $v0, 12
+syscall
+sw $v0, 1164($s0)
+li $v0, 12
+syscall
+sw $v0, 1168($s0)
+li $v0, 12
+syscall
+sw $v0, 1172($s0)
+lw $t0, 1124($s0)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+li $t0, 100
+sw $t0, 1072($s0)
+jal intfunc1
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 8($s1)
+lw $t0, 0($s1)
+lw $t1, 8($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+li $t1, 100
+bne $t0, $t1, LABEL3
+li $v0, 4
+la $a0, STRING1
+syscall
+j LABEL4
+LABEL3:
+li $v0, 4
+la $a0, STRING2
+syscall
+LABEL4:
+lw $t0, 1128($s0)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 100
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+li $t0, 100
+sw $t0, 1072($s0)
+jal intfunc1
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 12($s1)
+lw $t0, 4($s1)
+lw $t1, 12($s1)
+sub $t0, $t0, $t1
+sw $t0, 8($s1)
+li $t0, 1
+li $t1, 5
+add $t0, $t0, $t1
+sw $t0, 24($s1)
+li $t0, 25
+lw $t1, 24($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 20($s1)
+lw $t0, 8($s1)
+lw $t1, 20($s1)
+sub $t0, $t0, $t1
+sw $t0, 16($s1)
+lw $t0, 16($s1)
+li $t1, 0
+beq $t0, $t1, LABEL5
+li $v0, 4
+la $a0, STRING3
+syscall
+LABEL5:
+lw $t0, 1132($s0)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 3
+beq $t0, $t1, LABEL6
+li $v0, 4
+la $a0, STRING4
+syscall
+LABEL6:
+lw $t0, 1136($s0)
+li $t1, 3
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 2
+sub $t0, $t0, $t1
+bgtz $t0, LABEL7
+li $v0, 4
+la $a0, STRING5
+syscall
+j LABEL8
+LABEL7:
+li $v0, 4
+la $a0, STRING6
+syscall
+LABEL8:
+lw $t0, 1140($s0)
+li $t1, 3
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+li $t1, 1
+sub $t0, $t0, $t1
+sw $t0, 8($s1)
+lw $t0, 8($s1)
+li $t1, 1
+sub $t0, $t0, $t1
+sw $t0, 12($s1)
+li $t0, 100
+li $t1, 50
+div $t0, $t1
+mflo $t0
+sw $t0, 20($s1)
+lw $t0, 20($s1)
+li $t1, 2
+div $t0, $t1
+mflo $t0
+sw $t0, 24($s1)
+lw $t0, 12($s1)
+lw $t1, 24($s1)
+add $t0, $t0, $t1
+sw $t0, 16($s1)
+li $t0, 2
+li $t1, 99
+mult $t0, $t1
+mflo $t0
+sw $t0, 32($s1)
+lw $t0, 32($s1)
+li $t1, 11
+div $t0, $t1
+mflo $t0
+sw $t0, 36($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 12($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 16($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 20($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 24($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 28($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 32($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 36($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 40($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+jal intfunc0
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 40($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 36($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 32($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 28($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 24($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 20($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 16($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 12($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 44($s1)
+lw $t0, 36($s1)
+lw $t1, 44($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 40($s1)
+lw $t0, 16($s1)
+lw $t1, 40($s1)
+add $t0, $t0, $t1
+sw $t0, 28($s1)
+lw $t0, 28($s1)
+li $t1, 2
+sub $t0, $t0, $t1
+bltz $t0, LABEL9
+li $v0, 4
+la $a0, STRING7
+syscall
+LABEL9:
+lw $t0, 1148($s0)
+li $t1, 99
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 100
+sub $t0, $t0, $t1
+blez $t0, LABEL10
+li $v0, 4
+la $a0, STRING8
+syscall
+LABEL10:
+li $t0, -1
+li $t1, 3
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 1152($s0)
+lw $t1, 0($s1)
+beq $t0, $t1, LABEL11
+li $v0, 4
+la $a0, STRING9
+syscall
+LABEL11:
+li $t0, 0
+sw $t0, 12($s0)
+li $t0, 0
+sw $t0, 216($s0)
+li $t0, 0
+sw $t0, 220($s0)
+LABEL12:
+li $t0, 2
+li $t1, 6
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+li $t1, 4
+div $t0, $t1
+mflo $t0
+sw $t0, 8($s1)
+lw $t0, 12($s0)
+lw $t1, 8($s1)
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 12($s0)
+li $t0, 1
+li $t1, 1
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 216($s0)
+lw $t1, 4($s1)
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 216($s0)
+lw $t0, 216($s0)
+li $t1, 100
+sub $t0, $t0, $t1
+bltz $t0, LABEL12
+li $t0, 0
+sw $t0, 220($s0)
+LABEL13:
+lw $t0, 220($s0)
+li $t1, 50
+sub $t0, $t0, $t1
+bgez $t0, LABEL14
+lw $t0, 220($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 220($s0)
+lw $t1, 0($s1)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+sw $t1, 0($t2)
+lw $t0, 220($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 220($s0)
+j LABEL13
+LABEL14:
+li $t0, 100
+sw $t0, 224($s0)
+LABEL15:
+lw $t0, 224($s0)
+li $t1, 0
+sub $t0, $t0, $t1
+bltz $t0, LABEL16
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+jal voidadd
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+addi $s2, $s2, 4
+lw $t0, 224($s0)
+li $t1, 20
+sub $t0, $t0, $t1
+sw $t0, 224($s0)
+j LABEL15
+LABEL16:
+li $t0, 0
+sw $t0, 0($s0)
+LABEL17:
+lw $t0, 0($s0)
+li $t1, 50
+sub $t0, $t0, $t1
+bgez $t0, LABEL18
+lw $t0, 0($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 4($s0)
+LABEL19:
+lw $t0, 4($s0)
+li $t1, 50
+sub $t0, $t0, $t1
+bgez $t0, LABEL20
+lw $t0, 0($s0)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 0($s1)
+lw $t0, 4($s0)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 4($s1)
+lw $t0, 0($s1)
+lw $t1, 4($s1)
+sub $t0, $t0, $t1
+bgez $t0, LABEL21
+lw $t0, 4($s0)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 1108($s0)
+lw $t0, 0($s0)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 0($s1)
+lw $t0, 4($s0)
+lw $t1, 0($s1)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+sw $t1, 0($t2)
+lw $t0, 0($s0)
+lw $t1, 1108($s0)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+sw $t1, 0($t2)
+LABEL21:
+lw $t0, 4($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 4($s0)
+j LABEL19
+LABEL20:
+lw $t0, 0($s0)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 0($s0)
+j LABEL17
+LABEL18:
+li $t0, 1
+li $t1, 3
+sub $t0, $t0, $t1
+sw $t0, 8($s1)
+li $t0, 8
+lw $t1, 8($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+li $t0, 5
+lw $t1, 4($s1)
+sub $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 0($s1)
+sw $t0, 1084($s0)
+li $t0, 'A'
+sw $t0, 1088($s0)
+jal charfunc2
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+jal voidfunc3
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+li $t0, 5
+sw $t0, 1104($s0)
+jal voidfunc4
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+addi $s2, $s2, 4
+li $t0, -1
+li $t1, 10
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 12($s0)
+lw $t1, 216($s0)
+mult $t0, $t1
+mflo $t0
+sw $t0, 8($s1)
+lw $t0, 8($s1)
+li $t1, 2
+div $t0, $t1
+mflo $t0
+sw $t0, 12($s1)
+lw $t0, 0($s1)
+lw $t1, 12($s1)
+add $t0, $t0, $t1
+sw $t0, 4($s1)
+li $t0, 30
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 20($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 12($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 16($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 20($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 24($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+jal intfunc0
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 24($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 20($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 16($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 12($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 28($s1)
+lw $t0, 20($s1)
+lw $t1, 28($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 24($s1)
+lw $t0, 4($s1)
+lw $t1, 24($s1)
+sub $t0, $t0, $t1
+sw $t0, 16($s1)
+li $t0, 2
+li $t1, 3
+mult $t0, $t1
+mflo $t0
+sw $t0, 44($s1)
+li $t0, 1
+lw $t1, 44($s1)
+add $t0, $t0, $t1
+sw $t0, 40($s1)
+li $t0, 'B'
+lw $t1, 40($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 36($s1)
+lw $t0, 16($s1)
+lw $t1, 36($s1)
+add $t0, $t0, $t1
+sw $t0, 32($s1)
+lw $t0, 32($s1)
+sw $t0, 1112($s0)
+li $t0, 30
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+li $t1, 4
+div $t0, $t1
+mflo $t0
+sw $t0, 8($s1)
+lw $t0, 8($s1)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 12($s1)
+li $t0, 10
+lw $t1, 12($s1)
+sub $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 1116($s0)
+lw $t0, 1116($s0)
+li $t1, 2
+mult $t0, $t1
+mflo $t0
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+jal intfunc0
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 12($s1)
+li $t0, 100
+lw $t1, 12($s1)
+mult $t0, $t1
+mflo $t0
+sw $t0, 8($s1)
+lw $t0, 0($s1)
+lw $t1, 8($s1)
+sub $t0, $t0, $t1
+sw $t0, 4($s1)
+lw $t0, 4($s1)
+li $v0, 1
+move $a0, $t0
+syscall
+li $t0, 3
+li $t1, 5
+mult $t0, $t1
+mflo $t0
+sw $t0, 4($s1)
+li $t0, 5
+lw $t1, 4($s1)
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 1
+add $t0, $t0, $t1
+sw $t0, 8($s1)
+li $t0, -1
+li $t1, 1
+mult $t0, $t1
+mflo $t0
+sw $t0, 16($s1)
+lw $t0, 8($s1)
+lw $t1, 16($s1)
+add $t0, $t0, $t1
+sw $t0, 12($s1)
+li $v0, 4
+la $a0, STRING10
+syscall
+lw $t0, 12($s1)
+li $v0, 1
+move $a0, $t0
+syscall
+lw $t0, 1124($s0)
+li $t1, 'C'
+add $t0, $t0, $t1
+sw $t0, 0($s1)
+lw $t0, 0($s1)
+li $t1, 'A'
+sub $t0, $t0, $t1
+sw $t0, 4($s1)
+li $t0, 49
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 16($s1)
+li $t0, 101
+lw $t1, 16($s1)
+add $t0, $t0, $t1
+sw $t0, 12($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 12($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 16($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 12($s1)
+sw $t0, 1072($s0)
+jal intfunc1
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 16($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 12($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 20($s1)
+lw $t0, 20($s1)
+add $t0, $t0, $t0
+add $t0, $t0, $t0
+li $t2, 16
+add $t2, $t2, $s0
+add $t2, $t2, $t0
+lw $t1, 0($t2)
+sw $t1, 24($s1)
+lw $t0, 4($s1)
+lw $t1, 24($s1)
+add $t0, $t0, $t1
+sw $t0, 8($s1)
+lw $t0, 0($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 4($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 12($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 16($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 20($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 24($s1)
+sw $t0, 0($s2)
+addi $s2, $s2, 4
+sw $ra, 0($s2)
+addi $s2, $s2, 4
+lw $t0, 8($s1)
+sw $t0, 1100($s0)
+jal intfactor
+addi $s2, $s2, -4
+lw $ra, 0($s2)
+addi $s2, $s2, -4
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 24($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 20($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 16($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 12($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 8($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 4($s1)
+lw $t0, 0($s2)
+addi $s2, $s2, -4
+sw $t0, 0($s1)
+addi $s2, $s2, 4
+move $t0, $v0
+sw $t0, 28($s1)
+lw $t0, 28($s1)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING11
+syscall
+li $v0, 4
+la $a0, STRING12
+syscall
+lw $t0, 0($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING13
+syscall
+li $v0, 4
+la $a0, STRING14
+syscall
+lw $t0, 4($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING15
+syscall
+li $v0, 4
+la $a0, STRING16
+syscall
+lw $t0, 8($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING17
+syscall
+li $v0, 4
+la $a0, STRING18
+syscall
+lw $t0, 12($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING19
+syscall
+li $v0, 4
+la $a0, STRING20
+syscall
+lw $t0, 216($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING21
+syscall
+li $v0, 4
+la $a0, STRING22
+syscall
+lw $t0, 220($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING23
+syscall
+li $v0, 4
+la $a0, STRING24
+syscall
+lw $t0, 224($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING25
+syscall
+li $v0, 4
+la $a0, STRING26
+syscall
+lw $t0, 1108($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING27
+syscall
+li $v0, 4
+la $a0, STRING28
+syscall
+lw $t0, 1112($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING29
+syscall
+li $v0, 4
+la $a0, STRING30
+syscall
+lw $t0, 1116($s0)
+li $v0, 1
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING31
+syscall
+li $v0, 4
+la $a0, STRING32
+syscall
+lw $t0, 1160($s0)
+li $v0, 11
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING33
+syscall
+li $v0, 4
+la $a0, STRING34
+syscall
+lw $t0, 1164($s0)
+li $v0, 11
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING35
+syscall
+li $v0, 4
+la $a0, STRING36
+syscall
+lw $t0, 1168($s0)
+li $v0, 11
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING37
+syscall
+li $v0, 4
+la $a0, STRING38
+syscall
+lw $t0, 1172($s0)
+li $v0, 11
+move $a0, $t0
+syscall
+li $v0, 4
+la $a0, STRING39
+syscall
+endofprog:

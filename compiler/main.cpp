@@ -33,5 +33,6 @@ int main()
 		printMips();
 	}
 	cout << "编译完成，共发现错误" << errorCnt << "个" << endl;
+	system("pause");
 	return 0;
 }
