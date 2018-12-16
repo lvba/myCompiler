@@ -584,7 +584,8 @@ void statement(int funcType)
 				getWord();
 				if (nowWord.sym == COMMA) {//printf'('＜字符串＞,＜表达式＞')'
 					getWord();
-					exprRet = expression(0).first;
+					pair<string, int> p = expression(0);
+					exprRet = p.first;
 					genInterMedia(PUSH, "push", exprRet, "", "");
 					if (nowWord.sym != RPARENT) {
 						error(12, "while");
@@ -592,7 +593,7 @@ void statement(int funcType)
 					} else
 						test(SEMICOLON, 5);
 					getWord();
-					genInterMedia(CALL, "call", "printf", "2", "");
+					genInterMedia(CALL, "call", "printf", "2", to_string(p.second));
 				} else {//printf '('＜字符串＞')'
 					if (nowWord.sym == RPARENT) {
 						if(test(SEMICOLON, 5))
@@ -604,7 +605,8 @@ void statement(int funcType)
 					genInterMedia(CALL, "call", "printf", "1", "");
 				}				
 			} else { //只输出表达式
-				exprRet = expression(0).first;
+				pair<string, int> p = expression(0);
+				exprRet = p.first;
 				genInterMedia(PUSH, "push", exprRet, "", "");
 				if (nowWord.sym != RPARENT) {
 					error(12, "while");
@@ -613,7 +615,7 @@ void statement(int funcType)
 					if(test(SEMICOLON, 5))
 						getWord();
 				}
-				genInterMedia(CALL, "call", "printf", "1", "");
+				genInterMedia(CALL, "call", "printf", "1", to_string(p.second));
 			}
 			//cout << "这是写语句" << endl;
 			break;

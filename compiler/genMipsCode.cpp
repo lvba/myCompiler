@@ -283,6 +283,10 @@ void genMips()
 						} else { //printf '('＜表达式＞')'
 							//查push中的参数，存入$t0
 							int isChar = findAndSet("$t0", 1, ind);
+							if (imTable.exprs[i].expr[3] == "0")
+								isChar = 0;
+							else
+								isChar = 1;
 							if (isChar == 1) { //按char输出
 								genOneCode("li", "$v0", "11", "");
 								genOneCode("move", "$a0", "$t0", "");
@@ -318,6 +322,10 @@ void genMips()
 						genOneCode("syscall", "", "", "");
 						//再输出表达式
 						int isChar = findAndSet("$t0", 1, indExpr);
+						if (imTable.exprs[i].expr[3] == "0")
+							isChar = 0;
+						else
+							isChar = 1;
 						if (isChar == 1) { //按char输出
 							genOneCode("li", "$v0", "11", "");
 							genOneCode("move", "$a0", "$t0", "");
