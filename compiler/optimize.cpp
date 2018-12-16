@@ -17,5 +17,4 @@ void divideBlocks() //划分基本块
 			continue;
 		}
 	}
-
 }

@@ -358,5 +358,4 @@ int getInt()
 	}
 	cout << "词法分析处理完毕，请参见当前文件夹下的result.txt文件" << endl;
 	return 0;
-
 }*/

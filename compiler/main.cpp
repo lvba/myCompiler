@@ -14,6 +14,7 @@ void init()
 	imTable.ind = 0;
 }
 
+
 //±àÒëÆ÷Ö÷º¯Êı
 int main()
 {
