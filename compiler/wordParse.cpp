@@ -81,7 +81,7 @@ int bsearch(int low, int high, string target)
 //读单词，并在struct结构中存储当前单词的信息
 void getWord()
 {
-	while (nowCh == ' ')
+	while (nowCh == ' ' || nowCh == '\t')
 		nextCh();
 	if ((nowCh >= 'A' && nowCh <= 'Z') || (nowCh >= 'a' && nowCh <= 'z') || nowCh == '_') {
 		//标识符

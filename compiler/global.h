@@ -82,6 +82,17 @@ struct basicBlock {//基本块的数据结构
 };
 typedef struct basicBlock* block;
 extern vector<block> blockGraph;
+struct node {
+	string name;
+	int nodeNum;
+	struct node* lchild;
+	struct node* rchild;
+	vector<struct node*> parents;
+	int isLeaf;
+	int hasInQue;
+};
+typedef struct node* dagNode;
+extern vector<dagNode> dagGraph;
 
 //全局共享常量声明
 extern const int maxLineLen;

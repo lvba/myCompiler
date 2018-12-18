@@ -27,11 +27,11 @@ int main()
 	cout << "语法处理结束！" << endl;
 	if (errorCnt == 0) {
 		//打印中间式表
-		//printImTable();
+		printImTable();
 		//生成mips汇编
 		genMips();
 		//打印mips代码
-		printMips();
+		//printMips();
 	}
 	cout << "编译完成，共发现错误" << errorCnt << "个" << endl;
 	system("pause");
