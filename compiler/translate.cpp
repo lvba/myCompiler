@@ -161,11 +161,13 @@ int searchWithLevel(string name, int object, int nowLevel)//查指定level的变量
 int searchAllLevel(string name, int nowLevel)
 {
 	//查当前作用域
-	int index = symTable.funcInd[nowLevel - 1] + 1;
-	while (index < symTable.top && symTable.syms[index].spaceLv == nowLevel) {
-		if (symTable.syms[index].name == name)
-			return index;
-		++index;
+	if (nowLevel != 0) {
+		int index = symTable.funcInd[nowLevel - 1] + 1;
+		while (index < symTable.top && symTable.syms[index].spaceLv == nowLevel) {
+			if (symTable.syms[index].name == name)
+				return index;
+			++index;
+		}
 	}
 	//当前作用域未查到则查全局作用域
 	for (int i = 0; symTable.syms[i + 1].spaceLv == 0; ++i) {

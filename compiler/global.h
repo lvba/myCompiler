@@ -19,6 +19,8 @@ extern int addLevel;
 extern char nowCh;
 extern int errorCnt;
 extern int staticTempNum;
+extern vector<pair<string, string> > regPool; //寄存器名，变量名
+extern vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
 
 extern enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
@@ -46,6 +48,7 @@ struct sym {
 	int size; // 数组的维数或者函数的参数个数
 	int spaceLv; // 该标识符的作用域层次
 	int addr; //变量和函数变量填入其在mips运行栈中相对memory的偏移，数组填入其第一个元素的偏移
+	string reg; //变量分配的寄存器(没有则为空)
 };
 struct symtab {
 	struct sym syms[5000];
@@ -79,6 +82,12 @@ struct basicBlock {//基本块的数据结构
 	vector<int> codes;//基本块中的代码在imTable中的下标
 	vector<struct basicBlock*> prevBlocks;
 	vector<struct basicBlock*> nextBlocks;
+	vector<pair<int, int> > gen;//pair分别为基本块在blockGraph的下标以及中间式在codes的下标
+	vector<pair<int, int> > kill;
+	vector<pair<int, int> > in;
+	vector<pair<int, int> > out;
+	string inStr;
+	string outStr;
 };
 typedef struct basicBlock* block;
 extern vector<block> blockGraph;
@@ -126,3 +135,6 @@ void program();
 void genMips();
 void printMips();
 void printEachIm(int i);
+void divideBlocks();
+void dagOpt();
+void genOneCode(string instr, string r1, string r2, string r3);

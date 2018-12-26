@@ -22,6 +22,8 @@ int addLevel = 0;
 char nowCh;
 int errorCnt = 0;
 int staticTempNum = 0;
+vector<pair<string, string> > regPool;
+vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
 
 enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
@@ -49,6 +51,7 @@ struct sym {
 	int size; // 数组的维数或者函数的参数个数
 	int spaceLv; // 该标识符的作用域层次
 	int addr; //对于变量则填入变量在运行栈中存储单元的位移，常量则填入常量表中登录的位置，对于常量则直接填入值
+	string reg; //变量分配的寄存器(没有则为空)
 };
 struct symtab {
 	struct sym syms[maxSymNum];
@@ -78,6 +81,12 @@ struct basicBlock {//基本块的数据结构
 	vector<int> codes;//基本块中的代码在imTable中的下标
 	vector<struct basicBlock*> prevBlocks;
 	vector<struct basicBlock*> nextBlocks;
+	vector<pair<int, int> > gen;//pair分别为基本块在blockGraph的下标以及中间式在codes的下标
+	vector<pair<int, int> > kill;
+	vector<pair<int, int> > in;
+	vector<pair<int, int> > out;
+	string inStr;
+	string outStr;
 };
 typedef struct basicBlock* block;
 vector<block> blockGraph;
