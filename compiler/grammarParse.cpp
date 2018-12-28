@@ -53,6 +53,22 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊý£¬·Ö±ðÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 				int exprType = exprP.second;
 				if (exprType != 0)
 					error(37, "");
+				else { //¼ì²éÊý×é±í´ïÊ½ÊÇ·ñÔ½½ç
+					if (exprName[0] == '+' || exprName[0] == '-' || (exprName[0] >= '0' && exprName[0] <= '9')) {
+						istringstream is(exprName);
+						int dimen;
+						is >> dimen;
+						if (!(dimen >= 0 && dimen < symTable.syms[find].size))
+							error(49, "");
+					} else { //²éÊÇ·ñÎª³£Á¿
+						int findConst = searchSymTable(exprName, nowLevel);
+						if (symTable.syms[findConst].object == 0) {
+							int dimen = symTable.syms[findConst].addr;
+							if (!(dimen >= 0 && dimen < symTable.syms[find].size))
+								error(49, "");
+						}
+					}
+				}
 				if (nowWord.sym != RBRACK) {
 					error(10, "factor");
 					return make_pair("", -1);
@@ -464,6 +480,22 @@ void statement(int funcType)
 					int arrType = arrDimenP.second;
 					if (arrType != 0)
 						error(37, "");
+					else { //¼ì²éÊý×é±í´ïÊ½ÊÇ·ñÔ½½ç
+						if (arrDimen[0] == '+' || arrDimen[0] == '-' || (arrDimen[0] >= '0' && arrDimen[0] <= '9')) {
+							istringstream is(arrDimen);
+							int dimen;
+							is >> dimen;
+							if (!(dimen >= 0 && dimen < symTable.syms[find].size))
+								error(49, "");
+						} else { //²éÊÇ·ñÎª³£Á¿
+							int findConst = searchSymTable(arrDimen, nowLevel);
+							if (symTable.syms[findConst].object == 0) {
+								int dimen = symTable.syms[findConst].addr;
+								if (!(dimen >= 0 && dimen < symTable.syms[find].size))
+									error(49, "");
+							}
+						}
+					}
 					if (nowWord.sym != RBRACK) {
 						error(10, "for");
 						return;

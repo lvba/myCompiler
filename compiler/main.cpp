@@ -39,7 +39,7 @@ int main()
 		//printImTable();
 		//进行优化
 		//dagOpt();
-		optimize();
+		//optimize();
 		//生成mips汇编
 		genMips();
 		//打印mips代码

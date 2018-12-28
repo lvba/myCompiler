@@ -8,6 +8,10 @@
 using namespace std;
 
 static int labelNum = 0;
+static const string stdNames[13] = {
+	"const", "int", "char", "void", "main", "if",
+	"else", "do", "while", "for", "scanf", "printf", "return"
+};
 
 void genInterMedia(interType type, string p1, string p2, string p3, string p4)
 {
@@ -72,6 +76,15 @@ bool insertSymTable(string name, int obj, int type, int size, int spLv, int addr
 		return false;
 	}
 	else {
+		//变量名是否与标准量重名
+		for (int i = 0; i < 13; ++i) {
+			if (stdNames[i] == name) {
+				if (!(name == "main" && obj == 4)) {
+					error(48, "");
+					return false;
+				}
+			}
+		}
 		//查找是否有变量重定义
 		if (symTable.top != 0)
 			if (symTable.syms[symTable.top - 1].spaceLv == spLv) {

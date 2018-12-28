@@ -809,7 +809,6 @@ void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
 				}
 			}
 		}
-		int k = 0;
 	}
 }
 

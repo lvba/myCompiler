@@ -203,9 +203,9 @@ void genMips()
 					}
 					//t0和t1做计算(+-*/)，将结果存回t0
 					if (imTable.exprs[i].expr[2] == "+")
-						genOneCode("add", "$t0", "$t0", "$t1");
+						genOneCode("addu", "$t0", "$t0", "$t1");
 					if (imTable.exprs[i].expr[2] == "-")
-						genOneCode("sub", "$t0", "$t0", "$t1");
+						genOneCode("subu", "$t0", "$t0", "$t1");
 					if (imTable.exprs[i].expr[2] == "*") {
 						genOneCode("mult", "$t0", "$t1", "");
 						genOneCode("mflo", "$t0", "", "");
@@ -386,7 +386,7 @@ void genMips()
 									int addr = symTable.syms[callFuncInd].addr;
 									genOneCode("lw", "$t0", to_string(addr) + "($s0)", "");
 									genOneCode("sw", "$t0", "0($s2)", "");
-									genOneCode("addi", "$s2", "$s2", "4");
+									genOneCode("addiu", "$s2", "$s2", "4");
 								}
 								if (symTable.syms[callFuncInd].object == 3) { //保护数组
 									int addr = symTable.syms[callFuncInd].addr;
@@ -395,7 +395,7 @@ void genMips()
 										int ad = addr + ind * 4;
 										genOneCode("lw", "$t0", to_string(ad) + "($s0)", "");
 										genOneCode("sw", "$t0", "0($s2)", "");
-										genOneCode("addi", "$s2", "$s2", "4");
+										genOneCode("addiu", "$s2", "$s2", "4");
 									}
 								}
 								++callFuncInd;
@@ -405,11 +405,11 @@ void genMips()
 						for (int tempInd = 0; tempInd < maxTempNum; ++tempInd) {
 							genOneCode("lw", "$t0", to_string(4 * tempInd) + "($s1)", "");
 							genOneCode("sw", "$t0", "0($s2)", "");
-							genOneCode("addi", "$s2", "$s2", "4");
+							genOneCode("addiu", "$s2", "$s2", "4");
 						}
 							//保存ra和v0寄存器
 						genOneCode("sw", "$ra", "0($s2)", "");
-						genOneCode("addi", "$s2", "$s2", "4");
+						genOneCode("addiu", "$s2", "$s2", "4");
 						//再PUSH参数
 						int pushInd = paramStack.size() - paramNum;
 						for (int paraInd = funcInd + 1; symTable.syms[paraInd].object == 2; ++paraInd) {
@@ -423,13 +423,13 @@ void genMips()
 						//再jal调用函数
 						genOneCode("jal", tempArr[symTable.syms[funcInd].type] + funcName, "", "");
 						//最后恢复现场，反向恢复所有数据
-						genOneCode("addi", "$s2", "$s2", "-4");
+						genOneCode("addiu", "$s2", "$s2", "-4");
 						genOneCode("lw", "$ra", "0($s2)", "");
-						genOneCode("addi", "$s2", "$s2", "-4");
+						genOneCode("addiu", "$s2", "$s2", "-4");
 							//恢复_TEMP变量
 						for (int tempInd = maxTempNum - 1; tempInd >= 0; --tempInd) {
 							genOneCode("lw", "$t0", "0($s2)", "");
-							genOneCode("addi", "$s2", "$s2", "-4");
+							genOneCode("addiu", "$s2", "$s2", "-4");
 							genOneCode("sw", "$t0", to_string(tempInd * 4) + "($s1)", "");
 						}
 							//恢复函数参数，普通变量，数组变量
@@ -439,7 +439,7 @@ void genMips()
 								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
 									int addr = symTable.syms[callFuncInd].addr;
 									genOneCode("lw", "$t0", "0($s2)", "");
-									genOneCode("addi", "$s2", "$s2", "-4");
+									genOneCode("addiu", "$s2", "$s2", "-4");
 									genOneCode("sw", "$t0", to_string(addr) + "($s0)", "");
 								}
 								if (symTable.syms[callFuncInd].object == 3) { //保护数组
@@ -448,14 +448,14 @@ void genMips()
 									for (int ind = dimen - 1; ind >= 0; --ind) {
 										int ad = addr + 4 * ind;
 										genOneCode("lw", "$t0", "0($s2)", "");
-										genOneCode("addi", "$s2", "$s2", "-4");
+										genOneCode("addiu", "$s2", "$s2", "-4");
 										genOneCode("sw", "$t0", to_string(ad) + "($s0)", "");
 									}
 								}
 								--callFuncInd;
 							}
 						}						
-						genOneCode("addi", "$s2", "$s2", "4");
+						genOneCode("addiu", "$s2", "$s2", "4");
 					}
 				}
 				break;
@@ -553,28 +553,28 @@ void genMips()
 						genOneCode("bne", "$t0", "$t1", jump.expr[1]);
 				}
 				if (imTable.exprs[i].expr[1] == "<") {
-					genOneCode("sub", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$t0", "$t0", "$t1");
 					if (jump.type == BZ)
 						genOneCode("bgez", "$t0", jump.expr[1], "");
 					else
 						genOneCode("bltz", "$t0", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == "<=") {
-					genOneCode("sub", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$t0", "$t0", "$t1");
 					if (jump.type == BZ)
 						genOneCode("bgtz", "$t0", jump.expr[1], "");
 					else
 						genOneCode("blez", "$t0", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == ">") {
-					genOneCode("sub", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$t0", "$t0", "$t1");
 					if (jump.type == BZ)
 						genOneCode("blez", "$t0", jump.expr[1], "");
 					else
 						genOneCode("bgtz", "$t0", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == ">=") {
-					genOneCode("sub", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$t0", "$t0", "$t1");
 					if (jump.type == BZ)
 						genOneCode("bltz", "$t0", jump.expr[1], "");
 					else
@@ -603,11 +603,11 @@ void genMips()
 						if (symTable.syms[find].object != 3)
 							error(46, "");
 					int addr = symTable.syms[find].addr;
-					genOneCode("add", "$t0", "$t0", "$t0");
-					genOneCode("add", "$t0", "$t0", "$t0");
+					genOneCode("addu", "$t0", "$t0", "$t0");
+					genOneCode("addu", "$t0", "$t0", "$t0");
 					genOneCode("li", "$t2", to_string(addr), "");
-					genOneCode("add", "$t2", "$t2", "$s0");
-					genOneCode("add", "$t2", "$t2", "$t0");
+					genOneCode("addu", "$t2", "$t2", "$s0");
+					genOneCode("addu", "$t2", "$t2", "$t0");
 					genOneCode("sw", "$t1", "0($t2)", "");
 				} else { //a = b[]c
 					//查被赋值的变量
@@ -631,11 +631,11 @@ void genMips()
 						if (symTable.syms[find2].object != 3)
 							error(46, "");
 					int addr = symTable.syms[find2].addr;
-					genOneCode("add", "$t0", "$t0", "$t0");
-					genOneCode("add", "$t0", "$t0", "$t0");
+					genOneCode("addu", "$t0", "$t0", "$t0");
+					genOneCode("addu", "$t0", "$t0", "$t0");
 					genOneCode("li", "$t2", to_string(addr), "");
-					genOneCode("add", "$t2", "$t2", "$s0");
-					genOneCode("add", "$t2", "$t2", "$t0");
+					genOneCode("addu", "$t2", "$t2", "$s0");
+					genOneCode("addu", "$t2", "$t2", "$t0");
 					//将b[c]的值存入$t1
 					genOneCode("lw", "$t1", "0($t2)", "");
 					//将b[c]赋给a
