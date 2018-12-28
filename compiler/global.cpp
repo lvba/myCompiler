@@ -81,12 +81,10 @@ struct basicBlock {//基本块的数据结构
 	vector<int> codes;//基本块中的代码在imTable中的下标
 	vector<struct basicBlock*> prevBlocks;
 	vector<struct basicBlock*> nextBlocks;
-	vector<pair<int, int> > gen;//pair分别为基本块在blockGraph的下标以及中间式在codes的下标
-	vector<pair<int, int> > kill;
-	vector<pair<int, int> > in;
-	vector<pair<int, int> > out;
-	string inStr;
-	string outStr;
+	vector<string> def;
+	vector<string> use;
+	vector<string> in;
+	vector<string> out;
 };
 typedef struct basicBlock* block;
 vector<block> blockGraph;
@@ -101,6 +99,13 @@ struct node {
 };
 typedef struct node* dagNode;
 vector<dagNode> dagGraph;
+struct varNode {
+	string name;
+	vector<struct varNode*> confVars;
+	string reg;
+};
+typedef struct varNode* confNode;
+vector<vector<confNode> > confGraph;
 
 //全局共享常量定义
 extern const int maxLineLen = 200;

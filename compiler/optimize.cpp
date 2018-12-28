@@ -77,44 +77,31 @@ void divideBlocks() //划分基本块
 						break;
 					}
 				}
-				if (i + 1 < blockGraph.size()) {
+				if (i + 1 < blockGraph.size() && imTable.exprs[blockGraph[i + 1]->codes[0]].type != FUNC) {
+					blockGraph[i]->nextBlocks.push_back(blockGraph[i + 1]);
+					blockGraph[i + 1]->prevBlocks.push_back(blockGraph[i]);
+				}
+				break;
+			case CALL:
+				if (i + 1 < blockGraph.size() && imTable.exprs[blockGraph[i + 1]->codes[0]].type != FUNC) {
 					blockGraph[i]->nextBlocks.push_back(blockGraph[i + 1]);
 					blockGraph[i + 1]->prevBlocks.push_back(blockGraph[i]);
 				}
 				break;
 			case RET:
-				while (imTable.exprs[nowInd].type != FUNC)
-					--nowInd;
-				funcName = imTable.exprs[nowInd].expr[1];
-				for (int j = 0; j < blockGraph.size(); ++j) {
-					if (imTable.exprs[blockGraph[j]->codes[blockGraph[j]->codes.size() - 1]].type == CALL &&
-						imTable.exprs[blockGraph[j]->codes[blockGraph[j]->codes.size() - 1]].expr[1] == funcName) {
-						if (j + 1 < blockGraph.size()) {
-							blockGraph[i]->nextBlocks.push_back(blockGraph[j + 1]);
-							blockGraph[j + 1]->prevBlocks.push_back(blockGraph[i]);
-						}
-					}
-				}
-				break;
-			case CALL:
-				funcName = im.expr[1];
-				for (int j = 0; j < blockGraph.size(); ++j) {
-					if (imTable.exprs[blockGraph[j]->codes[0]].type == FUNC &&
-						imTable.exprs[blockGraph[j]->codes[0]].expr[1] == funcName) {
-						blockGraph[i]->nextBlocks.push_back(blockGraph[j]);
-						blockGraph[j]->prevBlocks.push_back(blockGraph[i]);
-						break;
-					}
-				}
+				;
 				break;
 			default:
-				//cout << "在划分基本块时发生错误" << endl;
-				//cout << im.expr[0] << ' ' << im.expr[1] << ' ' << im.expr[2] << ' ' << im.expr[3] << endl;
+				if (i + 1 < blockGraph.size() && imTable.exprs[blockGraph[i + 1]->codes[0]].type != FUNC) {
+					blockGraph[i]->nextBlocks.push_back(blockGraph[i + 1]);
+					blockGraph[i + 1]->prevBlocks.push_back(blockGraph[i]);
+				}
 				break;
 		}
 	}
 }
 
+//dag图删除基本块内公共子表达式
 int findNode(vector<pair<string, int> > nodeTab, string name)
 {
 	for (int i = 0; i < nodeTab.size(); ++i) {
@@ -406,7 +393,6 @@ pair<int, int> getFuncBlocks(int blockInd) //返回包含blockInd的函数的起始和结束b
 	}
 	if (is_find == 0) {
 		cout << "寻找函数基本块时发生严重错误！" << endl;
-		exit(0);
 	}
 	is_find = 0;
 	for (int i = blockInd + 1; i < blockGraph.size(); ++i) {
@@ -481,9 +467,358 @@ pair<int, int> bitTopair(int ind)
 }
 
 //活跃变量分析
-void liveVarAnalyse()
+inline bool isNum(string str)
 {
+	if (str[0] == '+' || str[0] == '-' || str[0] == '\'' || (str[0] >= '0' && str[0] <= '9'))
+		return true;
+	else
+		return false;
+}
 
+void insDefAndUse(int blockNum, string varName, int flag)
+{
+	if (find(blockGraph[blockNum]->def.begin(), blockGraph[blockNum]->def.end(), varName) == blockGraph[blockNum]->def.end() &&
+		find(blockGraph[blockNum]->use.begin(), blockGraph[blockNum]->use.end(), varName) == blockGraph[blockNum]->use.end()) {
+		if (flag == 0)
+			blockGraph[blockNum]->def.push_back(varName);
+		else
+			blockGraph[blockNum]->use.push_back(varName);
+	}
+}
+
+vector<string> setUnion(vector<string> v1, vector<string> v2)
+{
+	vector<string> ret(v1);
+	for (int i = 0; i < v2.size(); ++i) {
+		if (find(ret.begin(), ret.end(), v2[i]) == ret.end())
+			ret.push_back(v2[i]);
+	}
+	return ret;
+}
+
+vector<string> setSub(vector<string> v1, vector<string> v2)
+{
+	vector<string> ret;
+	for (int i = 0; i < v1.size(); ++i) {
+		if (find(v2.begin(), v2.end(), v1[i]) == v2.end())
+			ret.push_back(v1[i]);
+	}
+	return ret;
+}
+
+void liveVarAnalyse() //不忽略全局变量和_TEMP进行计算，然后在结果中将他们删除
+{
+	//为每个块生成def和use集合
+	for (int i = 0; i < blockGraph.size(); ++i) {
+		for (int j = 0; j < blockGraph[i]->codes.size(); ++j) {
+			intermedia im = imTable.exprs[blockGraph[i]->codes[j]];
+			switch (im.type) {
+				case VARASS:
+					if(!isNum(im.expr[1]))
+						insDefAndUse(i, im.expr[1], 1); //插入x
+					if (im.expr[3] != "")
+						if(!isNum(im.expr[3]))
+							insDefAndUse(i, im.expr[3], 1); //插入y
+					insDefAndUse(i, im.expr[0], 0); //插入z
+					break;
+				case ARRASS:
+					if (im.expr[1] == "[]") { //插入x
+						if (!isNum(im.expr[2]))
+							insDefAndUse(i, im.expr[2], 1);
+					} else {
+						insDefAndUse(i, im.expr[1], 1);
+					}
+					if (!isNum(im.expr[3]))
+						insDefAndUse(i, im.expr[3], 1);
+					insDefAndUse(i, im.expr[0], 0);					
+					break;
+				case COMPARE:
+					if (!isNum(im.expr[0]))
+						insDefAndUse(i, im.expr[0], 1);
+					if (!isNum(im.expr[2]))
+						insDefAndUse(i, im.expr[2], 1);
+					break;
+				case PUSH:
+					if(im.expr[1][0] != '"' && !isNum(im.expr[1]))
+						insDefAndUse(i, im.expr[1], 1);
+					break;
+				case RET:
+					if(im.expr[1] != "")
+						if (!isNum(im.expr[1]))
+							insDefAndUse(i, im.expr[1], 1);
+					break;
+			}
+		}
+	}
+	//计算in和out集合
+	while (true) {
+		int flag = 0;
+		for (int i = 0; i < blockGraph.size(); ++i) {
+			int lastNum = blockGraph[i]->in.size();
+			blockGraph[i]->in.clear();
+			blockGraph[i]->out.clear();
+			for (int j = 0; j < blockGraph[i]->nextBlocks.size(); ++j)
+				blockGraph[i]->out = setUnion(blockGraph[i]->out, blockGraph[i]->nextBlocks[j]->in);
+			blockGraph[i]->in = setUnion(blockGraph[i]->use, setSub(blockGraph[i]->out, blockGraph[i]->def));
+			int nowNum = blockGraph[i]->in.size();
+			if (lastNum != nowNum)
+				flag = 1;		
+		}
+		if (flag == 0)
+			break;
+	}
+	//在in和out集合中删去全局变量和_TEMP以及数组变量
+	for (int i = 0; i < blockGraph.size(); ++i) {
+		if (i == 0) {
+			if (imTable.exprs[blockGraph[0]->codes[0]].type != FUNC)
+				continue;
+		}
+		int nowLevel = getBlockLevel(i);
+		for (int j = 0; j < blockGraph[i]->in.size(); ++j) {
+			string name = blockGraph[i]->in[j];
+			int isDel = 0;
+			if (name.size() > 5 && name.substr(0, 5) == "_TEMP")
+				isDel = 1;
+			if (name.size() >= 4 && name == "_RET")
+				isDel = 1;
+			if (searchAllLevel(name, 0) != -1)
+				isDel = 1;
+			if(searchWithLevel(name, 3, nowLevel) != -1)
+				isDel = 1;
+			if (isDel == 1) {
+				blockGraph[i]->in.erase(blockGraph[i]->in.begin() + j);
+				--j;
+			}
+		}
+		for (int j = 0; j < blockGraph[i]->out.size(); ++j) {
+			string name = blockGraph[i]->out[j];
+			int isDel = 0;
+			if (name.size() > 5 && name.substr(0, 5) == "_TEMP")
+				isDel = 1;
+			if (name.size() >= 4 && name == "_RET")
+				isDel = 1;
+			if (searchAllLevel(name, 0) != -1)
+				isDel = 1;
+			if (searchWithLevel(name, 3, nowLevel) != -1)
+				isDel = 1;
+			if (isDel == 1) {
+				blockGraph[i]->out.erase(blockGraph[i]->out.begin() + j);
+				--j;
+			}
+		}
+		for (int j = 0; j < blockGraph[i]->def.size(); ++j) {
+			string name = blockGraph[i]->def[j];
+			int isDel = 0;
+			if (name.size() > 5 && name.substr(0, 5) == "_TEMP")
+				isDel = 1;
+			if (name.size() >= 4 && name == "_RET")
+				isDel = 1;
+			if (searchAllLevel(name, 0) != -1)
+				isDel = 1;
+			if (searchWithLevel(name, 3, nowLevel) != -1)
+				isDel = 1;
+			if (isDel == 1) {
+				blockGraph[i]->def.erase(blockGraph[i]->def.begin() + j);
+				--j;
+			}
+		}
+		for (int j = 0; j < blockGraph[i]->use.size(); ++j) {
+			string name = blockGraph[i]->use[j];
+			int isDel = 0;
+			if (name.size() > 5 && name.substr(0, 5) == "_TEMP")
+				isDel = 1;
+			if (name.size() >= 4 && name == "_RET")
+				isDel = 1;
+			if (searchAllLevel(name, 0) != -1)
+				isDel = 1;
+			if (searchWithLevel(name, 3, nowLevel) != -1)
+				isDel = 1;
+			if (isDel == 1) {
+				blockGraph[i]->use.erase(blockGraph[i]->use.begin() + j);
+				--j;
+			}
+		}
+	}
+}
+
+int findInConf(vector<confNode> funcConf, string name)
+{
+	for (int i = 0; i < funcConf.size(); ++i) {
+		if (funcConf[i]->name == name)
+			return i;
+	}
+	return -1;
+}
+
+void genConfGraph()
+{
+	for (int blockInd = 0; blockInd < blockGraph.size(); ++blockInd) {
+		if (imTable.exprs[blockGraph[blockInd]->codes[0]].type == FUNC) {
+			pair<int, int> stAndEd = getFuncBlocks(blockInd); //函数起始和结束block的下标
+			vector<string> vars; //函数里所有需要寄存器的非数组局部变量
+			for (int i = stAndEd.first; i <= stAndEd.second; ++i) {
+				for (int j = 0; j < blockGraph[i]->in.size(); ++j) {
+					if (find(vars.begin(), vars.end(), blockGraph[i]->in[j]) == vars.end())
+						vars.push_back(blockGraph[i]->in[j]);
+				}
+				for (int j = 0; j < blockGraph[i]->out.size(); ++j) {
+					if (find(vars.begin(), vars.end(), blockGraph[i]->out[j]) == vars.end())
+						vars.push_back(blockGraph[i]->out[j]);
+				}
+			}
+			//为vars里的所有变量构建冲突图
+			vector<confNode> funcConf;
+			for (int i = 0; i < vars.size(); ++i) {
+				confNode cn = new struct varNode;
+				cn->name = vars[i];
+				funcConf.push_back(cn);
+			}
+			//根据活跃变量分析结果连接各个结点
+			for (int i = stAndEd.first; i <= stAndEd.second; ++i) {
+				for (int ind1 = 0; ind1 < blockGraph[i]->in.size(); ++ind1) {
+					for (int ind2 = ind1 + 1; ind2 < blockGraph[i]->in.size(); ++ind2) {
+						int nodeInd1 = findInConf(funcConf, blockGraph[i]->in[ind1]);
+						int nodeInd2 = findInConf(funcConf, blockGraph[i]->in[ind2]);
+						int flag = 0;
+						for (int a = 0; a < funcConf[nodeInd1]->confVars.size(); ++a) {
+							if (funcConf[nodeInd1]->confVars[a]->name == funcConf[nodeInd2]->name) {
+								flag = 1;
+								break;
+							}
+						}
+						if (flag == 0) { //添加连接
+							funcConf[nodeInd1]->confVars.push_back(funcConf[nodeInd2]);
+							funcConf[nodeInd2]->confVars.push_back(funcConf[nodeInd1]);
+						}
+					}
+				}
+			}
+			confGraph.push_back(funcConf);
+		}
+	}
+}
+
+void delNode(vector<confNode> &tempGraph, int delInd)
+{
+	string name = tempGraph[delInd]->name;
+	tempGraph.erase(tempGraph.begin() + delInd);
+	for (int i = 0; i < tempGraph.size(); ++i) {
+		for (int j = 0; j < tempGraph[i]->confVars.size(); ++j) {
+			if (tempGraph[i]->confVars[j]->name == name) {
+				tempGraph[i]->confVars.erase(tempGraph[i]->confVars.begin() + j);
+				--j;
+			}
+		}
+	}
+}
+
+void allocReg(vector<vector<confNode> > &graphAlign, int ind, string nodeName, string regName)
+{
+	for (int i = ind; i >= 0; --i) {
+		int find;
+		for (find = 0; find < graphAlign[i].size(); ++find) {
+			if (graphAlign[i][find]->name == nodeName) {
+				graphAlign[i][find]->reg = regName;
+				break;
+			}			
+		}
+	}
+}
+
+void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
+{
+	int K = 8;
+	for (int i = 0; i < confGraph.size(); ++i) {
+		if (confGraph[i].size() == 0)
+			continue;
+		vector<vector<confNode> > graphAlign;
+		vector<pair<string, int> > nodeAlign;
+		vector<string> noReg;
+		vector<confNode> tempGraph(confGraph[i]);
+		graphAlign.push_back(tempGraph);
+		while (tempGraph.size() > 1) {
+			int maxLinks = 0, maxInd = -1;
+			for (int j = 0; j < tempGraph.size(); ++j) {
+				if (tempGraph[j]->confVars.size() < K) {
+					if (tempGraph[j]->confVars.size() >= maxLinks) {
+						maxLinks = tempGraph[j]->confVars.size();
+						maxInd = j;
+					}
+				}
+			}
+			if (maxInd != -1) { //可以移走一个结点
+				nodeAlign.push_back(make_pair(tempGraph[maxInd]->name, 1));
+				delNode(tempGraph, maxInd);
+				graphAlign.push_back(tempGraph);
+			} else { //已经无法移走结点
+				//选取一个适当的结点标为不分配寄存器的结点(取连接边最少的结点)
+				int minLink = 9999, minInd = -1;
+				for (int j = 0; j < tempGraph.size(); ++j) {
+					if (tempGraph[j]->confVars.size() <= minLink) {
+						minLink = tempGraph[j]->confVars.size();
+						minInd = j;
+					}
+				}
+				noReg.push_back(tempGraph[minInd]->name);
+				nodeAlign.push_back(make_pair(tempGraph[minInd]->name, -1));
+				delNode(tempGraph, minInd);
+				graphAlign.push_back(tempGraph);
+			}
+		}
+		//分配寄存器
+		for (int j = graphAlign.size() - 1; j >= 0; --j) {
+			if (j == graphAlign.size() - 1)
+				allocReg(graphAlign, j, graphAlign[j][0]->name, "$s0");
+			else {
+				//先确定有没有寄存器
+				if(nodeAlign[j].second == -1)
+					allocReg(graphAlign, j, nodeAlign[j].first, "NULL");
+				else {
+					for (int regInd = 0; regInd < 8; ++regInd) {
+						string str = "$s";
+						string regName = str + to_string(regInd);
+						int flag = 0;
+						for (int x = 0; x < graphAlign[j].size(); ++x) {
+							if (graphAlign[j][x]->name == nodeAlign[j].first) {
+								for (int y = 0; y < graphAlign[j][x]->confVars.size(); ++y) {
+									if (graphAlign[j][x]->confVars[y]->reg == regName) {
+										flag = 1;
+										break;
+									}
+								}
+								break;
+							}
+						}
+						if (flag == 0) {
+							allocReg(graphAlign, j, nodeAlign[j].first, regName);
+							break;
+						}
+						if (regInd == 7)
+							cout << "图着色分配寄存器时发生致命错误" << endl;
+					}
+				}			
+			}			
+		}
+		//将寄存器分配结果写入符号表
+		int startInd = symTable.funcInd[i];
+		for (int j = 0; j < graphAlign[0].size(); ++j) {
+			for (int x = startInd + 1; symTable.syms[x].object != 4; ++x) {
+				if (symTable.syms[x].name == graphAlign[0][j]->name) {
+					symTable.syms[x].reg = graphAlign[0][j]->reg;
+					break;
+				}
+			}
+		}
+		int k = 0;
+	}
+}
+
+void optimize()
+{
+	divideBlocks();
+	liveVarAnalyse();
+	genConfGraph();
+	globalRegAlloc();
 }
 
 
@@ -491,11 +826,7 @@ void liveVarAnalyse()
 
 
 
-
-
-
-
-void dataFlowAnalyse()
+/*void dataFlowAnalyse()
 {
 	//为每个块生成gen和kill集合
 	for (int i = 0; i < blockGraph.size(); ++i) {
@@ -584,3 +915,4 @@ void dataFlowAnalyse()
 	//构建定义使用链和网
 
 }
+*/

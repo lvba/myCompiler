@@ -38,8 +38,8 @@ int main()
 		//打印中间式表
 		//printImTable();
 		//进行优化
-		//divideBlocks();
 		//dagOpt();
+		optimize();
 		//生成mips汇编
 		genMips();
 		//打印mips代码

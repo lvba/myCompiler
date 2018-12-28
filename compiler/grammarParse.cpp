@@ -137,8 +137,15 @@ pair<string, int> factor(int depth)//·µ»ØÁ½¸ö²ÎÊı£¬·Ö±ğÎªÁÙÊ±±äÁ¿ÃûºÍÒò×Ó£¨Ïî£¬±
 							temps += "'";
 							return make_pair(temps, 1);
 						}
-					} else
-						return make_pair(idName, symTable.syms[find].type);
+					} else {
+						if(symTable.syms[find].spaceLv != 0) //¾Ö²¿±äÁ¿
+							return make_pair(idName, symTable.syms[find].type);
+						else { //È«¾Ö±äÁ¿
+							string tName = genTemp();
+							genInterMedia(VARASS, tName, idName, "", "");
+							return make_pair(tName, symTable.syms[find].type);
+						}
+					}
 				}		
 			}
 			break;
