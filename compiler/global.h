@@ -19,7 +19,7 @@ extern int addLevel;
 extern char nowCh;
 extern int errorCnt;
 extern int staticTempNum;
-extern vector<pair<string, string> > regPool; //寄存器名，变量名
+extern vector<pair<string, pair<string, int> > > regPool;
 extern vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
 
 extern enum symbol {//枚举所有类别码
@@ -142,3 +142,5 @@ void printMips();
 void printEachIm(int i);
 void genOneCode(string instr, string r1, string r2, string r3);
 void optimize();
+int getFromPool(string varName, int level,
+	vector<string> willBeUse, int varInd, int isTemp);

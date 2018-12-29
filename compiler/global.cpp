@@ -22,7 +22,7 @@ int addLevel = 0;
 char nowCh;
 int errorCnt = 0;
 int staticTempNum = 0;
-vector<pair<string, string> > regPool;
+vector<pair<string, pair<string, int> > > regPool;//寄存器号，变量名，变量作用域
 vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
 
 enum symbol {//枚举所有类别码

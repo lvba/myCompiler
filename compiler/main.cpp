@@ -15,7 +15,7 @@ void init()
 	for (int i = 0; i < 10; ++i) {
 		string regName = "$t";
 		regName += to_string(i);
-		regPool.push_back(make_pair(regName, ""));
+		regPool.push_back(make_pair(regName, make_pair("", -1)));
 	}
 	for (int i = 0; i < 250; ++i) 
 		tempRegTab.push_back("");
@@ -39,7 +39,7 @@ int main()
 		//printImTable();
 		//进行优化
 		//dagOpt();
-		//optimize();
+		optimize();
 		//生成mips汇编
 		genMips();
 		//打印mips代码

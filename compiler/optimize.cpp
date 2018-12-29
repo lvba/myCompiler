@@ -300,48 +300,76 @@ void dagOpt()
 inline void clearPool()
 {
 	for (int i = 0; i < 10; ++i)
-		regPool[i].second = "";
+		regPool[i].second.first = "";
 }
 
-int getFromPool(string varName, vector<int> willBeUse) //_TEMP和全局变量分配寄存器
+int getFromPool(string varName, int level, 
+	vector<string> willBeUse, int varInd, int isTemp) //_TEMP和全局变量分配寄存器
 {
 	int regInd = -1;
 	for (int i = 0; i < 10; ++i) {
-		if (regPool[i].second == "") {
+		if (regPool[i].second.first == "") {
 			regInd = i;
 			break;
 		}			
 	}
 	if (regInd != -1) {
-		regPool[regInd].second = varName;
+		regPool[regInd].second.first = varName;
+		regPool[regInd].second.second = level;
+		if (isTemp == 1) {
+			tempRegTab[varInd] = regPool[regInd].first;
+			genOneCode("lw", regPool[regInd].first, to_string(varInd * 4) + "($a3)", "");
+		} else {
+			symTable.syms[varInd].reg = regPool[regInd].first;
+			if(symTable.syms[varInd].spaceLv == 0)
+				genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
+			else
+				genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+		}
 		return regInd;
 	} else { //寄存器池已满
 		//将当前生成代码中不会用到的寄存器对应的变量写回内存，然后再写入当前变量
 		for (int i = 0; i < 10; ++i) {
-			if (find(willBeUse.begin(), willBeUse.end(), i) == willBeUse.end()) {
+			if (find(willBeUse.begin(), willBeUse.end(), regPool[i].first) == willBeUse.end()) {
 				//将下标为i的寄存器的值写回内存，并用varName覆盖这个寄存器
 				int isTEMP = 0;
-				string str = regPool[i].second;
+				string str = regPool[i].second.first;
 				if (str.size() > 5) {
 					if (str.substr(0, 5) == "_TEMP") {
 						str.erase(str.find("_TEMP"), 5);
 						istringstream is(str);
 						int tempNum;
 						is >> tempNum;
-						genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($s1)", "");
+						genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($a3)", "");
+						tempRegTab[tempNum] = "";
 						isTEMP = 1;
 					}
 				}
 				if (isTEMP == 0) {
-					int find = searchAllLevel(regPool[i].second, 0);
+					int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
 					if (find == -1)
 						cout << "在寄存器池相关操作中出现致命错误" << endl;
 					else {
 						int addr = symTable.syms[find].addr;
-						genOneCode("sw", regPool[i].first, to_string(addr) + "($s0)", "");
+						if(symTable.syms[find].spaceLv == 0)
+							genOneCode("sw", regPool[i].first, to_string(addr) + "($a1)", "");
+						else
+							genOneCode("sw", regPool[i].first, to_string(addr) + "($a2)", "");
+						symTable.syms[find].reg = "";
 					}
 				}
-				regPool[i].second = varName;
+				regPool[i].second.first = varName;
+				regPool[i].second.second = level;
+				if (isTemp == 1) {
+					tempRegTab[varInd] = regPool[i].first;
+					genOneCode("lw", regPool[i].first, to_string(varInd * 4) + "($a3)", "");
+				} else {
+					symTable.syms[varInd].reg = regPool[i].first;
+					if(symTable.syms[varInd].spaceLv == 0)
+						genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
+					else
+						genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+				}
 				return i;
 			}
 		}
@@ -353,27 +381,32 @@ int getFromPool(string varName, vector<int> willBeUse) //_TEMP和全局变量分配寄存
 void writeBack() //将寄存器池中所有被占用的寄存器回写，并清空寄存器池
 {
 	for (int i = 0; i < 10; ++i) {
-		if (regPool[i].second == "")
+		if (regPool[i].second.first == "")
 			continue;
 		int isTEMP = 0;
-		string str = regPool[i].second;
+		string str = regPool[i].second.first;
 		if (str.size() > 5) {
 			if (str.substr(0, 5) == "_TEMP") {
 				str.erase(str.find("_TEMP"), 5);
 				istringstream is(str);
 				int tempNum;
 				is >> tempNum;
-				genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($s1)", "");
+				genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($a3)", "");
+				tempRegTab[tempNum] = "";
 				isTEMP = 1;
 			}
 		}
 		if (isTEMP == 0) {
-			int find = searchAllLevel(regPool[i].second, 0);
+			int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
 			if (find == -1)
 				cout << "在寄存器池相关操作中出现致命错误" << endl;
 			else {
 				int addr = symTable.syms[find].addr;
-				genOneCode("sw", regPool[i].first, to_string(addr) + "($s0)", "");
+				if(symTable.syms[find].spaceLv == 0)
+					genOneCode("sw", regPool[i].first, to_string(addr) + "($a1)", "");
+				else
+					genOneCode("sw", regPool[i].first, to_string(addr) + "($a2)", "");
+				symTable.syms[find].reg = "";
 			}
 		}
 	}
@@ -772,7 +805,7 @@ void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
 			else {
 				//先确定有没有寄存器
 				if(nodeAlign[j].second == -1)
-					allocReg(graphAlign, j, nodeAlign[j].first, "NULL");
+					allocReg(graphAlign, j, nodeAlign[j].first, "");
 				else {
 					for (int regInd = 0; regInd < 8; ++regInd) {
 						string str = "$s";
