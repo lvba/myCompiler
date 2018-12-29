@@ -289,7 +289,7 @@ void dagOpt()
 			}
 		}
 		//由队列整理中间代码
-
+		int k = 0;
 		//dag图清零
 		dagGraph.clear();
 	}
@@ -848,6 +848,7 @@ void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
 void optimize()
 {
 	divideBlocks();
+	dagOpt();
 	liveVarAnalyse();
 	genConfGraph();
 	globalRegAlloc();

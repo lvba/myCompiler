@@ -141,6 +141,7 @@ void genMips()
 		int isTEMP;
 		struct intermedia jump;
 		vector<pair<string, int> > assignVars; //赋值语句的所有操作数寄存器或者内存地址
+		vector<string> compVars;
 		//printEachIm(i);
 		switch (imTable.exprs[i].type) {
 			case VAR:
@@ -558,7 +559,10 @@ void genMips()
 							istringstream is(str);
 							int tempNum;
 							is >> tempNum;
-							genOneCode("lw", "$v0", to_string(tempNum * 4) + "($a3)", "");
+							if(tempRegTab[tempNum] != "")
+								genOneCode("move", "$v0", tempRegTab[tempNum], "");
+							else
+								genOneCode("lw", "$v0", to_string(tempNum * 4) + "($a3)", "");
 							isTEMP = 1;
 						}
 					}
@@ -566,7 +570,14 @@ void genMips()
 						int find = searchAllLevel(imTable.exprs[i].expr[1], nowLevel);
 						if (find != -1) { //普通变量，函数变量
 							int addr = symTable.syms[find].addr;
-							genOneCode("lw", "$v0", to_string(addr) + "($a1)", "");
+							if(symTable.syms[find].reg != "")
+								genOneCode("move", "$v0", symTable.syms[find].reg, "");
+							else {
+								if(symTable.syms[find].spaceLv == 0)
+									genOneCode("lw", "$v0", to_string(addr) + "($a1)", "");
+								else
+									genOneCode("lw", "$v0", to_string(addr) + "($a2)", "");
+							}						
 						} else { //常量
 							genOneCode("li", "$v0", imTable.exprs[i].expr[1], "");
 						}
@@ -588,17 +599,34 @@ void genMips()
 						istringstream is(str);
 						int tempNum;
 						is >> tempNum;
-						genOneCode("lw", "$t0", to_string(tempNum * 4) + "($a3)", "");
+						if (tempRegTab[tempNum] != "")
+							compVars.push_back(tempRegTab[tempNum]);
+						else {
+							vector<string> willBeUse;
+							int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, tempNum, 1);
+							if (tempRegTab[tempNum] == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							compVars.push_back(tempRegTab[tempNum]);
+						}
+						//genOneCode("lw", "$t0", to_string(tempNum * 4) + "($a3)", "");
 						isTEMP = 1;
 					}
 				}
 				if (isTEMP == 0) { //普通变量，函数变量，常量
 					int find = searchAllLevel(imTable.exprs[i].expr[0], nowLevel);
 					if (find != -1) { //普通变量，函数变量
-						int addr = symTable.syms[find].addr;
-						genOneCode("lw", "$t0", to_string(addr) + "($a1)", "");
+						if (symTable.syms[find].reg != "")
+							compVars.push_back(symTable.syms[find].reg);
+						else { //跨越基本块不活跃的局部变量以及全局变量，则用寄存器池
+							vector<string> willBeUse;
+							int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 0);
+							if (symTable.syms[find].reg == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							compVars.push_back(symTable.syms[find].reg);
+						}
 					} else { //常量
-						genOneCode("li", "$t0", imTable.exprs[i].expr[0], "");
+						genOneCode("li", "$a0", imTable.exprs[i].expr[0], "");
+						compVars.push_back("$a0");
 					}
 				}
 				//查第二个操作数，将其存在$t1中
@@ -611,17 +639,35 @@ void genMips()
 						istringstream is(str);
 						int tempNum;
 						is >> tempNum;
-						genOneCode("lw", "$t1", to_string(tempNum * 4) + "($a3)", "");
+						if (tempRegTab[tempNum] != "")
+							compVars.push_back(tempRegTab[tempNum]);
+						else {
+							vector<string> willBeUse;
+							willBeUse.push_back(compVars[0]);
+							int allocReg = getFromPool(imTable.exprs[i].expr[2], nowLevel, willBeUse, tempNum, 1);
+							if (tempRegTab[tempNum] == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							compVars.push_back(tempRegTab[tempNum]);
+						}
 						isTEMP = 1;
 					}
 				}
 				if (isTEMP == 0) { //普通变量，函数变量，常量
 					int find = searchAllLevel(imTable.exprs[i].expr[2], nowLevel);
 					if (find != -1) { //普通变量，函数变量
-						int addr = symTable.syms[find].addr;
-						genOneCode("lw", "$t1", to_string(addr) + "($a1)", "");
+						if (symTable.syms[find].reg != "")
+							compVars.push_back(symTable.syms[find].reg);
+						else { //跨越基本块不活跃的局部变量以及全局变量，则用寄存器池
+							vector<string> willBeUse;
+							willBeUse.push_back(compVars[0]);
+							int allocReg = getFromPool(imTable.exprs[i].expr[2], nowLevel, willBeUse, find, 0);
+							if (symTable.syms[find].reg == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							compVars.push_back(symTable.syms[find].reg);
+						}
 					} else { //常量
-						genOneCode("li", "$t1", imTable.exprs[i].expr[2], "");
+						genOneCode("li", "$v1", imTable.exprs[i].expr[2], "");
+						compVars.push_back("$v1");
 					}
 				}
 				//根据操作符进行比较
@@ -629,43 +675,43 @@ void genMips()
 				condStack.pop_back();
 				if (imTable.exprs[i].expr[1] == "==") {
 					if (jump.type == BZ)
-						genOneCode("bne", "$t0", "$t1", jump.expr[1]);
+						genOneCode("bne", compVars[0], compVars[1], jump.expr[1]);
 					else
-						genOneCode("beq", "$t0", "$t1", jump.expr[1]);
+						genOneCode("beq", compVars[0], compVars[1], jump.expr[1]);
 				}
 				if (imTable.exprs[i].expr[1] == "!=") {
 					if (jump.type == BZ)
-						genOneCode("beq", "$t0", "$t1", jump.expr[1]);
+						genOneCode("beq", compVars[0], compVars[1], jump.expr[1]);
 					else
-						genOneCode("bne", "$t0", "$t1", jump.expr[1]);
+						genOneCode("bne", compVars[0], compVars[1], jump.expr[1]);
 				}
 				if (imTable.exprs[i].expr[1] == "<") {
-					genOneCode("subu", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$v1", compVars[0], compVars[1]);
 					if (jump.type == BZ)
-						genOneCode("bgez", "$t0", jump.expr[1], "");
+						genOneCode("bgez", "$v1", jump.expr[1], "");
 					else
-						genOneCode("bltz", "$t0", jump.expr[1], "");
+						genOneCode("bltz", "$v1", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == "<=") {
-					genOneCode("subu", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$v1", compVars[0], compVars[1]);
 					if (jump.type == BZ)
-						genOneCode("bgtz", "$t0", jump.expr[1], "");
+						genOneCode("bgtz", "$v1", jump.expr[1], "");
 					else
-						genOneCode("blez", "$t0", jump.expr[1], "");
+						genOneCode("blez", "$v1", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == ">") {
-					genOneCode("subu", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$v1", compVars[0], compVars[1]);
 					if (jump.type == BZ)
-						genOneCode("blez", "$t0", jump.expr[1], "");
+						genOneCode("blez", "$v1", jump.expr[1], "");
 					else
-						genOneCode("bgtz", "$t0", jump.expr[1], "");
+						genOneCode("bgtz", "$v1", jump.expr[1], "");
 				}
 				if (imTable.exprs[i].expr[1] == ">=") {
-					genOneCode("subu", "$t0", "$t0", "$t1");
+					genOneCode("subu", "$v1", compVars[0], compVars[1]);
 					if (jump.type == BZ)
-						genOneCode("bltz", "$t0", jump.expr[1], "");
+						genOneCode("bltz", "$v1", jump.expr[1], "");
 					else
-						genOneCode("bgez", "$t0", jump.expr[1], "");
+						genOneCode("bgez", "$v1", jump.expr[1], "");
 				}
 				break;
 			case GOTO:
@@ -679,10 +725,10 @@ void genMips()
 				break;
 			case ARRASS:
 				if (imTable.exprs[i].expr[1] == "[]") { //a[]b = c
-					//查变量b，将其值赋给$t0
-					findAndSet("$t0", 2, i);
-					//查变量c，将其值赋给$t1
-					findAndSet("$t1", 3, i);
+					//查变量b，将其值赋给$a0
+					findAndSet("$a0", 2, i);
+					//查变量c，将其值赋给$v1
+					findAndSet("$v1", 3, i);
 					int find = searchAllLevel(imTable.exprs[i].expr[0], nowLevel);
 					if (find == -1)
 						error(30, "");
@@ -690,12 +736,13 @@ void genMips()
 						if (symTable.syms[find].object != 3)
 							error(46, "");
 					int addr = symTable.syms[find].addr;
-					genOneCode("addu", "$t0", "$t0", "$t0");
-					genOneCode("addu", "$t0", "$t0", "$t0");
-					genOneCode("li", "$t2", to_string(addr), "");
-					genOneCode("addu", "$t2", "$t2", "$a1");
-					genOneCode("addu", "$t2", "$t2", "$t0");
-					genOneCode("sw", "$t1", "0($t2)", "");
+					genOneCode("sll", "$a0", "$a0", "2"); //a0 = a0 * 4
+					genOneCode("addiu", "$a0", "$a0", to_string(addr));
+					if(symTable.syms[find].spaceLv == 0)
+						genOneCode("addu", "$a0", "$a0", "$a1");
+					else
+						genOneCode("addu", "$a0", "$a0", "$a2");
+					genOneCode("sw", "$v1", "0($a0)", "");
 				} else { //a = b[]c
 					//查被赋值的变量
 					int type = 1;
@@ -709,8 +756,8 @@ void genMips()
 						find = tempNum;
 						type = -1;
 					}
-					//查变量c，赋值给$t0
-					findAndSet("$t0", 3, i);
+					//查变量c，赋值给$a0
+					findAndSet("$a0", 3, i);
 					int find2 = searchAllLevel(imTable.exprs[i].expr[1], nowLevel);
 					if (find2 == -1)
 						error(30, "");
@@ -718,20 +765,33 @@ void genMips()
 						if (symTable.syms[find2].object != 3)
 							error(46, "");
 					int addr = symTable.syms[find2].addr;
-					genOneCode("addu", "$t0", "$t0", "$t0");
-					genOneCode("addu", "$t0", "$t0", "$t0");
-					genOneCode("li", "$t2", to_string(addr), "");
-					genOneCode("addu", "$t2", "$t2", "$a1");
-					genOneCode("addu", "$t2", "$t2", "$t0");
-					//将b[c]的值存入$t1
-					genOneCode("lw", "$t1", "0($t2)", "");
-					//将b[c]赋给a
+					genOneCode("sll", "$a0", "$a0", "2");
+					genOneCode("addiu", "$a0", "$a0", to_string(addr));
+					if(symTable.syms[find2].spaceLv == 0)
+						genOneCode("addu", "$a0", "$a0", "$a1");
+					else
+						genOneCode("addu", "$a0", "$a0", "$a2");
+					//将b[c]的值存入变量a对应的寄存器
 					if (type == 1) {
-						int addr = symTable.syms[find].addr;
-						genOneCode("sw", "$t1", to_string(addr) + "($a1)", "");
-					} else {
-						int addr = find * 4;
-						genOneCode("sw", "$t1", to_string(addr) + "($a3)", "");
+						if (symTable.syms[find].reg != "")
+							genOneCode("lw", symTable.syms[find].reg, "0($a0)", "");
+						else { //跨越基本块不活跃的局部变量以及全局变量，则用寄存器池
+							vector<string> willBeUse;
+							int allocReg = getFromPool(symTable.syms[find].name, nowLevel, willBeUse, find, 0);
+							if (symTable.syms[find].reg == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							genOneCode("lw", symTable.syms[find].reg, "0($a0)", "");
+						}
+					} else { //_TEMP变量
+						if (tempRegTab[find] != "")
+							genOneCode("lw", tempRegTab[find], "0($a0)", "");
+						else {
+							vector<string> willBeUse;
+							int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 1);
+							if (tempRegTab[find] == "")
+								cout << "致命错误：变量未分配到临时寄存器" << endl;
+							genOneCode("lw", tempRegTab[find], "0($a0)", "");
+						}
 					}
 				}
 				break;
