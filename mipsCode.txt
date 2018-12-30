@@ -70,8 +70,6 @@ mflo $t1
 subu $t2, $t1, $s0
 move $v0, $t2
 sw $t0, 4($a2)
-sw $t1, 0($a3)
-sw $t2, 4($a3)
 sw $t3, 8($a2)
 jr $ra
 jr $ra
@@ -89,7 +87,6 @@ li $v1, 32
 addu $t0, $t1, $v1
 move $t2, $t0
 move $v0, $t1
-sw $t0, 0($a3)
 sw $t1, 8($a2)
 sw $t2, 12($a2)
 jr $ra
@@ -122,8 +119,6 @@ move $t0, $v0
 mult $t0, $s0
 mflo $t1
 move $v0, $t1
-sw $t0, 4($a3)
-sw $t1, 8($a3)
 jr $ra
 LABEL2:
 jr $ra
@@ -137,7 +132,6 @@ lw $s0, 0($a2)
 li $v1, 1
 addu $t0, $s0, $v1
 move $s0, $t0
-sw $t0, 0($a3)
 jr $ra
 jr $ra
 voidadd:
@@ -146,9 +140,7 @@ move $t0, $t1
 li $v1, 5
 addu $t2, $t0, $v1
 move $t1, $t2
-sw $t0, 0($a3)
 sw $t1, 8($a1)
-sw $t2, 4($a3)
 jr $ra
 voidempty:
 jr $ra
@@ -231,9 +223,6 @@ lw $t2, 0($a3)
 mult $t2, $t0
 mflo $t1
 li $v1, 100
-sw $t0, 8($a3)
-sw $t1, 4($a3)
-sw $t2, 0($a3)
 bne $t1, $v1, LABEL3
 li $v0, 4
 la $a0, STRING1
@@ -290,12 +279,6 @@ mult $a0, $t3
 mflo $t4
 subu $t5, $t1, $t4
 li $v1, 0
-sw $t0, 12($a3)
-sw $t1, 8($a3)
-sw $t2, 4($a3)
-sw $t3, 24($a3)
-sw $t4, 20($a3)
-sw $t5, 16($a3)
 beq $t5, $v1, LABEL5
 li $v0, 4
 la $a0, STRING3
@@ -305,7 +288,6 @@ li $v1, 2
 mult $s2, $v1
 mflo $t0
 li $v1, 3
-sw $t0, 0($a3)
 beq $t0, $v1, LABEL6
 li $v0, 4
 la $a0, STRING4
@@ -315,7 +297,6 @@ li $v1, 3
 mult $s3, $v1
 mflo $t0
 li $v1, 2
-sw $t0, 0($a3)
 subu $v1, $t0, $v1
 bgtz $v1, LABEL7
 li $v0, 4
@@ -393,11 +374,6 @@ mflo $t1
 lw $t4, 16($a3)
 addu $t3, $t4, $t1
 li $v1, 2
-sw $t0, 44($a3)
-sw $t1, 40($a3)
-sw $t2, 36($a3)
-sw $t3, 28($a3)
-sw $t4, 16($a3)
 subu $v1, $t3, $v1
 bltz $v1, LABEL9
 li $v0, 4
@@ -408,7 +384,6 @@ li $v1, 99
 mult $s6, $v1
 mflo $t0
 li $v1, 100
-sw $t0, 0($a3)
 subu $v1, $t0, $v1
 blez $v1, LABEL10
 li $v0, 4
@@ -419,7 +394,6 @@ li $a0, -1
 li $v1, 3
 mult $a0, $v1
 mflo $t0
-sw $t0, 0($a3)
 beq $s7, $t0, LABEL11
 li $v0, 4
 la $a0, STRING9
@@ -456,11 +430,7 @@ addu $t4, $t0, $t2
 move $t5, $t4
 move $t0, $t5
 li $v1, 100
-sw $t0, 0($a3)
 sw $t1, 12($a1)
-sw $t2, 8($a3)
-sw $t3, 12($a3)
-sw $t4, 4($a3)
 sw $t5, 216($a1)
 subu $v1, $t0, $v1
 bltz $v1, LABEL12
@@ -471,7 +441,6 @@ LABEL13:
 lw $t1, 220($a1)
 move $t0, $t1
 li $v1, 50
-sw $t0, 0($a3)
 sw $t1, 220($a1)
 subu $v1, $t0, $v1
 bgez $v1, LABEL14
@@ -488,10 +457,7 @@ addu $a0, $a0, $a1
 sw $v1, 0($a0)
 li $v1, 1
 addu $t1, $t1, $v1
-sw $t0, 0($a3)
 sw $t1, 220($a1)
-sw $t2, 4($a3)
-sw $t3, 8($a3)
 j LABEL13
 LABEL14:
 li $a0, 100
@@ -501,7 +467,6 @@ LABEL15:
 lw $t1, 224($a1)
 move $t0, $t1
 li $v1, 0
-sw $t0, 0($a3)
 sw $t1, 224($a1)
 subu $v1, $t0, $v1
 bltz $v1, LABEL16
@@ -537,6 +502,7 @@ j LABEL15
 LABEL16:
 
 
+
 li $a0, 0
 move $t0, $a0
 sw $t0, 0($a1)
@@ -545,7 +511,6 @@ LABEL17:
 lw $t1, 0($a1)
 move $t0, $t1
 li $v1, 50
-sw $t0, 0($a3)
 sw $t1, 0($a1)
 subu $v1, $t0, $v1
 bgez $v1, LABEL18
@@ -555,16 +520,13 @@ move $t0, $t1
 li $v1, 1
 addu $t2, $t0, $v1
 move $t3, $t2
-sw $t0, 0($a3)
 sw $t1, 0($a1)
-sw $t2, 4($a3)
 sw $t3, 4($a1)
 
 LABEL19:
 lw $t1, 4($a1)
 move $t0, $t1
 li $v1, 50
-sw $t0, 0($a3)
 sw $t1, 4($a1)
 subu $v1, $t0, $v1
 bgez $v1, LABEL20
@@ -583,12 +545,8 @@ sll $a0, $a0, 2
 addiu $a0, $a0, 16
 addu $a0, $a0, $a1
 lw $t5, 0($a0)
-sw $t0, 0($a3)
 sw $t1, 0($a1)
-sw $t2, 4($a3)
-sw $t3, 8($a3)
 sw $t4, 4($a1)
-sw $t5, 12($a3)
 subu $v1, $t2, $t5
 bgez $v1, LABEL21
 
@@ -621,12 +579,9 @@ sll $a0, $a0, 2
 addiu $a0, $a0, 16
 addu $a0, $a0, $a1
 sw $v1, 0($a0)
-sw $t0, 0($a3)
 sw $t1, 4($a1)
-sw $t2, 4($a3)
 sw $t3, 0($a2)
 sw $t4, 0($a1)
-sw $t5, 8($a3)
 
 LABEL21:
 li $v1, 1
@@ -640,9 +595,9 @@ addu $t0, $t0, $v1
 sw $t0, 0($a1)
 j LABEL17
 
+
+
 LABEL18:
-
-
 li $a0, 1
 li $v1, 3
 subu $t0, $a0, $v1

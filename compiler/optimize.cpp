@@ -393,7 +393,8 @@ int getFromPool(string varName, int level,
 	}
 }
 
-void writeBack() //将寄存器池中所有被占用的寄存器回写，并清空寄存器池
+//当isOnCall为1时，回写所有的变量，否则不会写_TEMP变量
+void writeBack(int isOnCall) //将寄存器池中所有被占用的寄存器回写，并清空寄存器池
 {
 	for (int i = 0; i < 10; ++i) {
 		if (regPool[i].second.first == "")
@@ -406,7 +407,8 @@ void writeBack() //将寄存器池中所有被占用的寄存器回写，并清空寄存器池
 				istringstream is(str);
 				int tempNum;
 				is >> tempNum;
-				genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($a3)", "");
+				if(isOnCall == 1)
+					genOneCode("sw", regPool[i].first, to_string(tempNum * 4) + "($a3)", "");
 				tempRegTab[tempNum] = "";
 				isTEMP = 1;
 			}

@@ -525,7 +525,7 @@ void genMips()
 							//回写t0-t9
 						//vector<pair<string, pair<string, int> > > copyRegPool(regPool);
 						//vector<string> copyTempRegTab(tempRegTab);
-						writeBack(); 
+						writeBack(1); 
 							//回写s0-s7(即回写除数组外的所有局部变量)
 						int callFuncInd = symTable.funcInd[nowLevel - 1];
 						++callFuncInd;//指向该函数的第一个局部变量
@@ -619,7 +619,7 @@ void genMips()
 					}
 				}
 				//回写
-				writeBack();
+				writeBack(0);
 				if (nowLevel != symTable.funcInd.size())
 					genOneCode("jr", "$ra", "", "");
 				else
@@ -711,7 +711,7 @@ void genMips()
 				jump = condStack[condStack.size() - 1];
 				condStack.pop_back();
 				//先回写
-				writeBack();
+				writeBack(0);
 				if (imTable.exprs[i].expr[1] == "==") {
 					if (jump.type == BZ)
 						genOneCode("bne", compVars[0], compVars[1], jump.expr[1]);
@@ -754,7 +754,7 @@ void genMips()
 				}
 				break;
 			case GOTO:
-				writeBack();
+				writeBack(0);
 				genOneCode("j", imTable.exprs[i].expr[1], "", "");
 				break;
 			case BNZ:
@@ -843,7 +843,7 @@ void genMips()
 			if (i == blockGraph[bl]->codes.back()) { //基本块结尾
 				if (imTable.exprs[i].type != GOTO && imTable.exprs[i].type != COMPARE &&
 					imTable.exprs[i].type != RET && imTable.exprs[i].type != CALL) {
-					writeBack();
+					writeBack(0);
 				}							
 				break;
 			}

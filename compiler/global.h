@@ -144,5 +144,5 @@ void genOneCode(string instr, string r1, string r2, string r3);
 void optimize();
 int getFromPool(string varName, int level,
 	vector<string> willBeUse, int varInd, int isTemp, int isNeedVal);
-void writeBack();
+void writeBack(int isOnCall);
 void clearPool();
