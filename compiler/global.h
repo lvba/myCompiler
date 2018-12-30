@@ -145,4 +145,5 @@ void optimize();
 int getFromPool(string varName, int level,
 	vector<string> willBeUse, int varInd, int isTemp, int isNeedVal);
 void writeBack(int isOnCall);
+void writeBackRet();
 void clearPool();

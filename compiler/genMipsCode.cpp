@@ -144,6 +144,7 @@ void genMips()
 		vector<pair<string, int> > assignVars; //赋值语句的所有操作数寄存器或者内存地址
 		vector<string> compVars;
 		int beAssIsNeed;
+		int paramAddr;
 		//printEachIm(i);
 		//进入基本块时清空临时寄存器池
 		for (int bl = 0; bl < blockGraph.size(); ++bl) {
@@ -321,13 +322,16 @@ void genMips()
 				label = imTable.exprs[i].expr[0] + imTable.exprs[i].expr[1] + ":";
 				genOneCode(label, "", "", "");
 				//从内存中取分配了全局寄存器的参数
+				paramAddr = 0;
 				for (int x = 0; x < symTable.funcInd.size(); ++x) {
 					if (symTable.syms[symTable.funcInd[x]].name == imTable.exprs[i].expr[1]) {
 						for (int pl = symTable.funcInd[x] + 1; pl < symTable.top; ++pl) {
 							if (symTable.syms[pl].object != 2)
 								break;
-							if (symTable.syms[pl].reg != "" && symTable.syms[pl].reg[1] == 's') 
-								genOneCode("lw", symTable.syms[pl].reg, to_string(symTable.syms[pl].addr) + "($a2)", "");
+							if (symTable.syms[pl].reg != "" && symTable.syms[pl].reg[1] == 's') {
+								genOneCode("lw", symTable.syms[pl].reg, to_string(paramAddr) + "($a2)", "");
+							}	
+							paramAddr = paramAddr + 4;
 						}
 						break;
 					}
@@ -558,13 +562,13 @@ void genMips()
 						for (int temp = 0; temp < paramNum; ++temp)
 							paramStack.pop_back();
 						//栈指针移动
-						genOneCode("addi", "$a2", "$a2", to_string(stackOffset));
-						genOneCode("addi", "$a3", "$a3", to_string(tempOffset));
+						genOneCode("addiu", "$a2", "$a2", to_string(stackOffset));
+						genOneCode("addiu", "$a3", "$a3", to_string(tempOffset));
 						//再jal调用函数
 						genOneCode("jal", tempArr[symTable.syms[funcInd].type] + funcName, "", "");
 						//最后恢复现场，反向恢复所有数据
-						genOneCode("addi", "$a3", "$a3", to_string(-tempOffset));
-						genOneCode("addi", "$a2", "$a2", to_string(-stackOffset));
+						genOneCode("addiu", "$a3", "$a3", to_string(-tempOffset));
+						genOneCode("addiu", "$a2", "$a2", to_string(-stackOffset));
 							//恢复$ra寄存器
 						genOneCode("lw", "$ra", to_string(stackOffset - 4) + "($a2)", "");
 							//恢复s0-s7
@@ -626,7 +630,7 @@ void genMips()
 					}
 				}
 				//回写
-				writeBack(0);
+				writeBackRet();
 				if (nowLevel != symTable.funcInd.size())
 					genOneCode("jr", "$ra", "", "");
 				else

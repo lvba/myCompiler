@@ -430,6 +430,40 @@ void writeBack(int isOnCall) //½«¼Ä´æÆ÷³ØÖÐËùÓÐ±»Õ¼ÓÃµÄ¼Ä´æÆ÷»ØÐ´£¬²¢Çå¿Õ¼Ä´æÆ÷³
 	clearPool();
 }
 
+void writeBackRet()
+{
+	for (int i = 0; i < 10; ++i) {
+		if (regPool[i].second.first == "")
+			continue;
+		int isTEMP = 0;
+		string str = regPool[i].second.first;
+		if (str.size() > 5) {
+			if (str.substr(0, 5) == "_TEMP") {
+				str.erase(str.find("_TEMP"), 5);
+				istringstream is(str);
+				int tempNum;
+				is >> tempNum;
+				tempRegTab[tempNum] = "";
+				isTEMP = 1;
+			}
+		}
+		if (isTEMP == 0) {
+			int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
+			if (find == -1)
+				cout << "ÔÚ¼Ä´æÆ÷³ØÏà¹Ø²Ù×÷ÖÐ³öÏÖÖÂÃü´íÎó" << endl;
+			else {
+				int addr = symTable.syms[find].addr;
+				if (symTable.syms[find].spaceLv == 0)
+					genOneCode("sw", regPool[i].first, to_string(addr) + "($a1)", "");
+				else
+					;
+				symTable.syms[find].reg = "";
+			}
+		}
+	}
+	clearPool();
+}
+
 void recover()
 {
 	for (int i = 0; i < 10; ++i) {

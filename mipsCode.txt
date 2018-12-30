@@ -2,1025 +2,360 @@
 memory: .space 5000
 stack: .space 5000
 temp: .space 5000
-STRING39: .asciiz "  "
-STRING38: .asciiz "scan4="
-STRING37: .asciiz "  "
-STRING36: .asciiz "scan3="
-STRING35: .asciiz "  "
-STRING34: .asciiz "scan2="
-STRING33: .asciiz "  "
-STRING32: .asciiz "scan1="
-STRING31: .asciiz "  "
-STRING30: .asciiz "var2="
-STRING29: .asciiz "  "
-STRING28: .asciiz "var1="
-STRING27: .asciiz "  "
-STRING26: .asciiz "temp="
-STRING25: .asciiz "  "
-STRING24: .asciiz "_="
-STRING23: .asciiz "  "
-STRING22: .asciiz "i3="
-STRING21: .asciiz "  "
-STRING20: .asciiz "i2="
-STRING19: .asciiz "  "
-STRING18: .asciiz "i1="
-STRING17: .asciiz "  "
-STRING16: .asciiz "global="
-STRING15: .asciiz "  "
-STRING14: .asciiz "q="
-STRING13: .asciiz "  "
-STRING12: .asciiz "r="
-STRING11: .asciiz "\\\\\\\\\\nNow output all initialized variables!\\\\\\"
-STRING10: .asciiz "\\my age is:\\n"
-STRING9: .asciiz "con4!=CON4"
-STRING8: .asciiz "should not be output!"
-STRING7: .asciiz "3>=2"
-STRING6: .asciiz "3 is not <= 2"
-STRING5: .asciiz "should not be output"
-STRING4: .asciiz "2!=3"
-STRING3: .asciiz "should not be output"
-STRING2: .asciiz "no"
-STRING1: .asciiz "yes"
-STRING0: .asciiz "hello world!"
+STRING14: .asciiz " 10! = "
+STRING13: .asciiz "          The total is "
+STRING12: .asciiz "          "
+STRING11: .asciiz " "
+STRING10: .asciiz " ---------------------------------------------------------------          "
+STRING9: .asciiz " b = "
+STRING8: .asciiz " ---------------------------------------------------------------          "
+STRING7: .asciiz "          "
+STRING6: .asciiz "  "
+STRING5: .asciiz " complete number: "
+STRING4: .asciiz " OVERFLOW!          "
+STRING3: .asciiz " SWAP y = "
+STRING2: .asciiz " SWAP x = "
+STRING1: .asciiz " y = "
+STRING0: .asciiz " x = "
 .text
 la $a1, memory
 la $a2, stack
 la $a3, temp
 j voidmain
-intfunc0:
-li $a0, 5
-move $t0, $a0
-move $v0, $t0
-sw $t0, 0($a2)
-jr $ra
-jr $ra
-intfunc1:
-lw $s0, 0($a2)
-li $a0, 5
-move $t0, $a0
-li $a0, 3
-mult $a0, $t0
-mflo $t1
-mult $t1, $t0
-mflo $t2
-move $t3, $t2
-li $v1, 2
-mult $t3, $v1
-mflo $t1
-subu $t2, $t1, $s0
-move $v0, $t2
-sw $t0, 4($a2)
-sw $t3, 8($a2)
-jr $ra
-jr $ra
-charfunc2:
-li $a0, 10
-move $t0, $a0
-li $a0, 'A'
-move $t1, $a0
-li $v1, 10
-sw $t0, 12($a2)
-sw $t1, 8($a2)
-bne $t0, $v1, LABEL0
-lw $t1, 8($a2)
-li $v1, 32
-addu $t0, $t1, $v1
-move $t2, $t0
-move $v0, $t1
-sw $t1, 8($a2)
-sw $t2, 12($a2)
-jr $ra
-LABEL0:
-jr $ra
-intfactor:
+intfactorial:
 lw $s0, 0($a2)
 li $v1, 1
-bne $s0, $v1, LABEL1
+subu $v1, $s0, $v1
+bgtz $v1, LABEL0
 li $v0, 1
 jr $ra
-j LABEL2
-LABEL1:
+j LABEL1
+LABEL0:
 li $v1, 1
 subu $t0, $s0, $v1
-sw $t0, 0($a3)
+sw $t0, 4($a3)
 sw $s0, 0($a2)
 sw $ra, 4($a2)
-lw $t0, 0($a3)
+lw $t0, 4($a3)
 move $a0, $t0
 sw $a0, 8($a2)
-addi $a2, $a2, 8
-addi $a3, $a3, 12
-jal intfactor
-addi $a3, $a3, -12
-addi $a2, $a2, -8
+addiu $a2, $a2, 8
+addiu $a3, $a3, 12
+jal intfactorial
+addiu $a3, $a3, -12
+addiu $a2, $a2, -8
 lw $ra, 4($a2)
 lw $s0, 0($a2)
 move $t0, $v0
-mult $t0, $s0
+mult $s0, $t0
 mflo $t1
 move $v0, $t1
 jr $ra
-LABEL2:
+LABEL1:
 jr $ra
-voidfunc3:
+intmod:
+lw $s0, 0($a2)
+lw $s1, 4($a2)
+div $s0, $s1
+mflo $t0
+mult $t0, $s1
+mflo $t1
+subu $t2, $s0, $t1
+move $s0, $t2
+move $v0, $s0
+jr $ra
+jr $ra
+voidswap:
+lw $s0, 0($a2)
+lw $s1, 4($a2)
 li $v0, 4
 la $a0, STRING0
-syscall
-jr $ra
-voidfunc4:
-lw $s0, 0($a2)
-li $v1, 1
-addu $t0, $s0, $v1
-move $s0, $t0
-jr $ra
-jr $ra
-voidadd:
-lw $t1, 8($a1)
-move $t0, $t1
-li $v1, 5
-addu $t2, $t0, $v1
-move $t1, $t2
-sw $t1, 8($a1)
-jr $ra
-voidempty:
-jr $ra
-voidmain:
-li $a0, -1
-li $v1, 100
-mult $a0, $v1
-mflo $t0
-move $t1, $t0
-li $v0, 5
-syscall
-move $s0, $v0
-li $v0, 5
-syscall
-move $s1, $v0
-li $v0, 5
-syscall
-move $s2, $v0
-li $v0, 5
-syscall
-move $s3, $v0
-li $v0, 5
-syscall
-move $s4, $v0
-li $v0, 5
-syscall
-move $s5, $v0
-li $v0, 5
-syscall
-move $s6, $v0
-li $v0, 5
-syscall
-move $s7, $v0
-li $v0, 12
-syscall
-sw $v0, 52($a2)
-li $v0, 12
-syscall
-sw $v0, 56($a2)
-li $v0, 12
-syscall
-sw $v0, 60($a2)
-li $v0, 12
-syscall
-sw $v0, 64($a2)
-li $v1, 2
-mult $s0, $v1
-mflo $t0
-sw $t0, 0($a3)
-sw $t1, 8($a1)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-li $a0, 100
-sw $a0, 72($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfunc1
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-lw $t2, 0($a3)
-mult $t2, $t0
-mflo $t1
-li $v1, 100
-bne $t1, $v1, LABEL3
-li $v0, 4
-la $a0, STRING1
-syscall
-j LABEL4
-LABEL3:
-li $v0, 4
-la $a0, STRING2
-syscall
-LABEL4:
-li $v1, 2
-mult $s1, $v1
-mflo $t0
-li $v1, 100
-mult $t0, $v1
-mflo $t1
-sw $t0, 0($a3)
-sw $t1, 4($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-li $a0, 100
-sw $a0, 72($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfunc1
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-lw $t2, 4($a3)
-subu $t1, $t2, $t0
-li $a0, 1
-li $v1, 5
-addu $t3, $a0, $v1
-li $a0, 25
-mult $a0, $t3
-mflo $t4
-subu $t5, $t1, $t4
-li $v1, 0
-beq $t5, $v1, LABEL5
-li $v0, 4
-la $a0, STRING3
-syscall
-LABEL5:
-li $v1, 2
-mult $s2, $v1
-mflo $t0
-li $v1, 3
-beq $t0, $v1, LABEL6
-li $v0, 4
-la $a0, STRING4
-syscall
-LABEL6:
-li $v1, 3
-mult $s3, $v1
-mflo $t0
-li $v1, 2
-subu $v1, $t0, $v1
-bgtz $v1, LABEL7
-li $v0, 4
-la $a0, STRING5
-syscall
-j LABEL8
-LABEL7:
-li $v0, 4
-la $a0, STRING6
-syscall
-LABEL8:
-li $v1, 3
-mult $s4, $v1
-mflo $t0
-li $v1, 2
-mult $t0, $v1
-mflo $t1
-li $v1, 1
-subu $t2, $t1, $v1
-li $v1, 1
-subu $t3, $t2, $v1
-li $a0, 100
-li $v1, 50
-div $a0, $v1
-mflo $t4
-li $v1, 2
-div $t4, $v1
-mflo $t5
-addu $t6, $t3, $t5
-li $a0, 2
-li $v1, 99
-mult $a0, $v1
-mflo $t7
-li $v1, 11
-div $t7, $v1
-mflo $t8
-sw $t0, 0($a3)
-sw $t1, 4($a3)
-sw $t2, 8($a3)
-sw $t3, 12($a3)
-sw $t4, 20($a3)
-sw $t5, 24($a3)
-sw $t6, 16($a3)
-sw $t7, 32($a3)
-sw $t8, 36($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfunc0
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-lw $t2, 36($a3)
-mult $t2, $t0
-mflo $t1
-lw $t4, 16($a3)
-addu $t3, $t4, $t1
-li $v1, 2
-subu $v1, $t3, $v1
-bltz $v1, LABEL9
-li $v0, 4
-la $a0, STRING7
-syscall
-LABEL9:
-li $v1, 99
-mult $s6, $v1
-mflo $t0
-li $v1, 100
-subu $v1, $t0, $v1
-blez $v1, LABEL10
-li $v0, 4
-la $a0, STRING8
-syscall
-LABEL10:
-li $a0, -1
-li $v1, 3
-mult $a0, $v1
-mflo $t0
-beq $s7, $t0, LABEL11
-li $v0, 4
-la $a0, STRING9
-syscall
-LABEL11:
-li $a0, 0
-move $t0, $a0
-li $a0, 0
-move $t1, $a0
-li $a0, 0
-move $t2, $a0
-sw $t0, 12($a1)
-sw $t1, 216($a1)
-sw $t2, 220($a1)
-LABEL12:
-lw $t1, 12($a1)
-move $t0, $t1
-li $a0, 2
-li $v1, 6
-mult $a0, $v1
-mflo $t2
-li $v1, 4
-div $t2, $v1
-mflo $t3
-addu $t4, $t0, $t3
-move $t1, $t4
-lw $t5, 216($a1)
-move $t0, $t5
-li $a0, 1
-li $v1, 1
-mult $a0, $v1
-mflo $t2
-addu $t4, $t0, $t2
-move $t5, $t4
-move $t0, $t5
-li $v1, 100
-sw $t1, 12($a1)
-sw $t5, 216($a1)
-subu $v1, $t0, $v1
-bltz $v1, LABEL12
-li $a0, 0
-move $t0, $a0
-sw $t0, 220($a1)
-LABEL13:
-lw $t1, 220($a1)
-move $t0, $t1
-li $v1, 50
-sw $t1, 220($a1)
-subu $v1, $t0, $v1
-bgez $v1, LABEL14
-lw $t1, 220($a1)
-move $t0, $t1
-move $t2, $t1
-li $v1, 1
-addu $t3, $t2, $v1
-move $a0, $t0
-move $v1, $t3
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-sw $v1, 0($a0)
-li $v1, 1
-addu $t1, $t1, $v1
-sw $t1, 220($a1)
-j LABEL13
-LABEL14:
-li $a0, 100
-move $t0, $a0
-sw $t0, 224($a1)
-LABEL15:
-lw $t1, 224($a1)
-move $t0, $t1
-li $v1, 0
-sw $t1, 224($a1)
-subu $v1, $t0, $v1
-bltz $v1, LABEL16
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal voidadd
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-lw $t0, 224($a1)
-li $v1, 20
-subu $t0, $t0, $v1
-sw $t0, 224($a1)
-j LABEL15
-LABEL16:
-li $a0, 0
-move $t0, $a0
-sw $t0, 0($a1)
-LABEL17:
-lw $t1, 0($a1)
-move $t0, $t1
-li $v1, 50
-sw $t1, 0($a1)
-subu $v1, $t0, $v1
-bgez $v1, LABEL18
-lw $t1, 0($a1)
-move $t0, $t1
-li $v1, 1
-addu $t2, $t0, $v1
-move $t3, $t2
-sw $t1, 0($a1)
-sw $t3, 4($a1)
-LABEL19:
-lw $t1, 4($a1)
-move $t0, $t1
-li $v1, 50
-sw $t1, 4($a1)
-subu $v1, $t0, $v1
-bgez $v1, LABEL20
-lw $t1, 0($a1)
-move $t0, $t1
-move $a0, $t0
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-lw $t2, 0($a0)
-lw $t4, 4($a1)
-move $t3, $t4
-move $a0, $t3
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-lw $t5, 0($a0)
-sw $t1, 0($a1)
-sw $t4, 4($a1)
-subu $v1, $t2, $t5
-bgez $v1, LABEL21
-lw $t1, 4($a1)
-move $t0, $t1
-move $a0, $t0
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-lw $t2, 0($a0)
-move $t3, $t2
-move $t0, $t1
-lw $t4, 0($a1)
-move $t2, $t4
-move $a0, $t2
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-lw $t5, 0($a0)
-move $a0, $t0
-move $v1, $t5
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-sw $v1, 0($a0)
-move $t0, $t4
-move $a0, $t0
-move $v1, $t3
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-sw $v1, 0($a0)
-sw $t1, 4($a1)
-sw $t3, 0($a2)
-sw $t4, 0($a1)
-LABEL21:
-lw $t0, 4($a1)
-li $v1, 1
-addu $t0, $t0, $v1
-sw $t0, 4($a1)
-j LABEL19
-LABEL20:
-lw $t0, 0($a1)
-li $v1, 1
-addu $t0, $t0, $v1
-sw $t0, 0($a1)
-j LABEL17
-LABEL18:
-li $a0, 1
-li $v1, 3
-subu $t0, $a0, $v1
-li $a0, 8
-mult $a0, $t0
-mflo $t1
-li $a0, 5
-subu $t2, $a0, $t1
-sw $t0, 8($a3)
-sw $t1, 4($a3)
-sw $t2, 0($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-lw $t0, 0($a3)
-move $a0, $t0
-sw $a0, 72($a2)
-li $a0, 'A'
-sw $a0, 76($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal charfunc2
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal voidfunc3
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-li $a0, 5
-sw $a0, 72($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal voidfunc4
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-li $a0, -1
-li $v1, 10
-mult $a0, $v1
-mflo $t0
-lw $t2, 12($a1)
-move $t1, $t2
-lw $t4, 216($a1)
-move $t3, $t4
-mult $t1, $t3
-mflo $t5
-li $v1, 2
-div $t5, $v1
-mflo $t6
-addu $t7, $t0, $t6
-li $a0, 30
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-lw $t8, 0($a0)
-sw $t0, 0($a3)
-sw $t1, 8($a3)
-sw $t2, 12($a1)
-sw $t3, 16($a3)
-sw $t4, 216($a1)
-sw $t5, 12($a3)
-sw $t6, 20($a3)
-sw $t7, 4($a3)
-sw $t8, 28($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfunc0
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-lw $t2, 28($a3)
-mult $t2, $t0
-mflo $t1
-lw $t4, 4($a3)
-subu $t3, $t4, $t1
-li $a0, 2
-li $v1, 3
-mult $a0, $v1
-mflo $t5
-li $a0, 1
-addu $t6, $a0, $t5
-li $a0, 'B'
-mult $a0, $t6
-mflo $t7
-addu $t8, $t3, $t7
-move $s0, $t8
-li $a0, 30
-li $v1, 2
-mult $a0, $v1
-mflo $t4
-li $v1, 4
-div $t4, $v1
-mflo $t9
-move $a0, $t9
-sll $a0, $a0, 2
-addiu $a0, $a0, 16
-addu $a0, $a0, $a1
-sw $t0, 36($a3)
-lw $t0, 0($a0)
-sw $t0, 12($a3)
-li $a0, 10
-sw $t1, 32($a3)
-lw $t1, 12($a3)
-subu $t0, $a0, $t1
-move $s1, $t0
-li $v1, 2
-mult $s1, $v1
-mflo $t0
-sw $t0, 0($a3)
-sw $t1, 12($a3)
-sw $t2, 28($a3)
-sw $t3, 24($a3)
-sw $t4, 4($a3)
-sw $t5, 52($a3)
-sw $t6, 48($a3)
-sw $t7, 44($a3)
-sw $t8, 40($a3)
-sw $t9, 8($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfunc0
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-li $a0, 100
-mult $a0, $t0
-mflo $t1
-lw $t3, 0($a3)
-subu $t2, $t3, $t1
-move $a0, $t2
-li $v0, 1
-syscall
-li $a0, 3
-li $v1, 5
-mult $a0, $v1
-mflo $t2
-li $a0, 5
-addu $t3, $a0, $t2
-li $v1, 1
-addu $t1, $t3, $v1
-li $a0, -1
-li $v1, 1
-mult $a0, $v1
-mflo $t4
-addu $t0, $t1, $t4
-li $v0, 4
-la $a0, STRING10
-syscall
-move $a0, $t0
-li $v0, 1
-syscall
-sw $t0, 12($a3)
-sw $t1, 8($a3)
-sw $t2, 4($a3)
-sw $t3, 0($a3)
-sw $t4, 16($a3)
-sw $s0, 4($a2)
-sw $s1, 8($a2)
-sw $s0, 16($a2)
-sw $s1, 20($a2)
-sw $s2, 24($a2)
-sw $s3, 28($a2)
-sw $s4, 32($a2)
-sw $s5, 36($a2)
-sw $s6, 40($a2)
-sw $s7, 44($a2)
-sw $ra, 68($a2)
-li $a0, 5
-sw $a0, 72($a2)
-addi $a2, $a2, 72
-addi $a3, $a3, 56
-jal intfactor
-addi $a3, $a3, -56
-addi $a2, $a2, -72
-lw $ra, 68($a2)
-lw $s0, 4($a2)
-lw $s1, 8($a2)
-lw $s2, 24($a2)
-lw $s3, 28($a2)
-lw $s4, 32($a2)
-lw $s5, 36($a2)
-lw $s6, 40($a2)
-lw $s7, 44($a2)
-move $t0, $v0
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING11
-syscall
-li $v0, 4
-la $a0, STRING12
-syscall
-lw $t1, 0($a1)
-move $t0, $t1
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING13
-syscall
-li $v0, 4
-la $a0, STRING14
-syscall
-lw $t2, 4($a1)
-move $t0, $t2
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING15
-syscall
-li $v0, 4
-la $a0, STRING16
-syscall
-lw $t3, 8($a1)
-move $t0, $t3
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING17
-syscall
-li $v0, 4
-la $a0, STRING18
-syscall
-lw $t4, 12($a1)
-move $t0, $t4
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING19
-syscall
-li $v0, 4
-la $a0, STRING20
-syscall
-lw $t5, 216($a1)
-move $t0, $t5
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING21
-syscall
-li $v0, 4
-la $a0, STRING22
-syscall
-lw $t6, 220($a1)
-move $t0, $t6
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING23
-syscall
-li $v0, 4
-la $a0, STRING24
-syscall
-lw $t7, 224($a1)
-move $t0, $t7
-move $a0, $t0
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING25
-syscall
-li $v0, 4
-la $a0, STRING26
-syscall
-lw $t8, 0($a2)
-move $a0, $t8
-li $v0, 1
-syscall
-li $v0, 4
-la $a0, STRING27
-syscall
-li $v0, 4
-la $a0, STRING28
 syscall
 move $a0, $s0
 li $v0, 1
 syscall
 li $v0, 4
-la $a0, STRING29
-syscall
-li $v0, 4
-la $a0, STRING30
+la $a0, STRING1
 syscall
 move $a0, $s1
 li $v0, 1
 syscall
+move $t0, $s0
+move $s0, $s1
+move $s1, $t0
 li $v0, 4
-la $a0, STRING31
+la $a0, STRING2
+syscall
+move $a0, $s0
+li $v0, 1
 syscall
 li $v0, 4
-la $a0, STRING32
+la $a0, STRING3
 syscall
-lw $t9, 52($a2)
-move $a0, $t9
-li $v0, 11
+move $a0, $s1
+li $v0, 1
+syscall
+jr $ra
+voidcomplete_num:
+lw $s0, 0($a2)
+move $s1, $s0
+LABEL2:
+li $a0, -1
+li $v1, 1
+mult $a0, $v1
+mflo $t0
+move $s2, $t0
+move $s0, $s1
+li $a0, 1
+move $s3, $a0
+LABEL3:
+div $s1, $s3
+mflo $t0
+mult $t0, $s3
+mflo $t1
+move $t2, $t1
+div $s1, $s3
+mflo $t1
+mult $t1, $s3
+mflo $t3
+subu $t0, $s1, $t3
+li $v1, 0
+sw $t2, 532($a2)
+bne $t0, $v1, LABEL4
+li $v1, 1
+addu $t0, $s2, $v1
+move $s2, $t0
+subu $t0, $s0, $s3
+move $s0, $t0
+li $v1, 128
+subu $v1, $s2, $v1
+bltz $v1, LABEL5
+li $v0, 4
+la $a0, STRING4
+syscall
+j LABEL6
+LABEL5:
+move $a0, $s2
+move $v1, $s3
+sll $a0, $a0, 2
+addiu $a0, $a0, 4
+addu $a0, $a0, $a2
+sw $v1, 0($a0)
+LABEL6:
+j LABEL7
+LABEL4:
+LABEL7:
+li $v1, 1
+addu $t0, $s3, $v1
+move $s3, $t0
+subu $v1, $s3, $s1
+bltz $v1, LABEL3
+li $v1, 0
+bne $s0, $v1, LABEL8
+li $v0, 4
+la $a0, STRING5
+syscall
+move $a0, $s1
+li $v0, 1
+syscall
+li $a0, 0
+move $s3, $a0
+LABEL9:
+move $a0, $s3
+sll $a0, $a0, 2
+addiu $a0, $a0, 4
+addu $a0, $a0, $a2
+lw $t0, 0($a0)
+li $v0, 4
+la $a0, STRING6
+syscall
+move $a0, $t0
+li $v0, 1
+syscall
+li $v1, 1
+addu $t0, $s3, $v1
+move $s3, $t0
+subu $v1, $s3, $s2
+blez $v1, LABEL9
+li $v0, 4
+la $a0, STRING7
+syscall
+j LABEL10
+LABEL8:
+LABEL10:
+li $v1, 1
+addu $t0, $s1, $v1
+move $s1, $t0
+li $v1, 1024
+subu $v1, $s1, $v1
+bltz $v1, LABEL2
+li $v0, 4
+la $a0, STRING8
+syscall
+li $a0, 0
+move $s0, $a0
+li $a0, 0
+move $s3, $a0
+LABEL11:
+mult $s0, $s3
+mflo $t0
+move $s0, $t0
+mult $s1, $s2
+mflo $t0
+move $t1, $t0
+mult $s0, $s3
+mflo $t0
+move $s0, $t0
+addu $t0, $s0, $s0
+addu $t2, $t0, $t1
+move $s0, $t2
+li $v1, 1
+addu $t0, $s3, $v1
+move $s3, $t0
+li $v1, 1024
+sw $t1, 564($a2)
+subu $v1, $s3, $v1
+bltz $v1, LABEL11
+move $s0, $s0
+li $a0, 0
+move $s3, $a0
+LABEL12:
+addu $t0, $s0, $s3
+move $s0, $t0
+li $v1, 1
+addu $t0, $s3, $v1
+move $s3, $t0
+li $v1, 1024
+subu $v1, $s3, $v1
+bltz $v1, LABEL12
+li $v0, 4
+la $a0, STRING9
+syscall
+move $a0, $s0
+li $v0, 1
 syscall
 li $v0, 4
-la $a0, STRING33
+la $a0, STRING10
 syscall
+li $a0, 0
+move $s2, $a0
+li $a0, 1
+move $s1, $a0
+li $a0, 2
+move $s0, $a0
+LABEL13:
+li $v1, 2
+div $s0, $v1
+mflo $t0
+move $s4, $t0
+li $a0, 2
+move $s3, $a0
+LABEL14:
+div $s0, $s3
+mflo $t0
+mult $t0, $s3
+mflo $t1
+move $t2, $t1
+div $s0, $s3
+mflo $t1
+mult $t1, $s3
+mflo $t3
+subu $t0, $s0, $t3
+li $v1, 0
+sw $t2, 552($a2)
+bne $t0, $v1, LABEL15
+li $a0, 0
+move $s1, $a0
+j LABEL16
+LABEL15:
+LABEL16:
+li $v1, 1
+addu $t0, $s3, $v1
+move $s3, $t0
+subu $v1, $s3, $s4
+blez $v1, LABEL14
+li $v1, 1
+bne $s1, $v1, LABEL17
 li $v0, 4
-la $a0, STRING34
+la $a0, STRING11
+syscall
+move $a0, $s0
+li $v0, 1
+syscall
+li $v1, 1
+addu $t0, $s2, $v1
+move $s2, $t0
+li $v1, 10
+div $s2, $v1
+mflo $t0
+li $v1, 10
+mult $t0, $v1
+mflo $t1
+move $t2, $t1
+sw $t2, 552($a2)
+bne $t2, $s2, LABEL18
+li $v0, 4
+la $a0, STRING12
+syscall
+j LABEL19
+LABEL18:
+LABEL19:
+j LABEL20
+LABEL17:
+LABEL20:
+li $a0, 1
+move $s1, $a0
+li $v1, 1
+addu $t0, $s0, $v1
+move $s0, $t0
+li $v1, 1024
+subu $v1, $s0, $v1
+blez $v1, LABEL13
+li $v0, 4
+la $a0, STRING13
+syscall
+move $a0, $s2
+li $v0, 1
+syscall
+jr $ra
+voidmain:
+sw $ra, 4($a2)
+li $a0, 10
+sw $a0, 8($a2)
+addiu $a2, $a2, 8
+addiu $a3, $a3, 4
+jal intfactorial
+addiu $a3, $a3, -4
+addiu $a2, $a2, -8
+lw $ra, 4($a2)
+move $t0, $v0
+move $t1, $t0
+li $v0, 4
+la $a0, STRING14
+syscall
+move $a0, $t1
+li $v0, 1
 syscall
 sw $t0, 0($a3)
-lw $t0, 56($a2)
-move $a0, $t0
-li $v0, 11
-syscall
-li $v0, 4
-la $a0, STRING35
-syscall
-li $v0, 4
-la $a0, STRING36
-syscall
-sw $t0, 56($a2)
-lw $t0, 60($a2)
-move $a0, $t0
-li $v0, 11
-syscall
-li $v0, 4
-la $a0, STRING37
-syscall
-li $v0, 4
-la $a0, STRING38
-syscall
-sw $t0, 60($a2)
-lw $t0, 64($a2)
-move $a0, $t0
-li $v0, 11
-syscall
-li $v0, 4
-la $a0, STRING39
-syscall
+sw $t1, 0($a2)
+sw $ra, 4($a2)
+li $a0, 5
+sw $a0, 8($a2)
+li $a0, 10
+sw $a0, 12($a2)
+addiu $a2, $a2, 8
+addiu $a3, $a3, 4
+jal voidswap
+addiu $a3, $a3, -4
+addiu $a2, $a2, -8
+lw $ra, 4($a2)
+sw $ra, 4($a2)
+li $a0, 2
+sw $a0, 8($a2)
+addiu $a2, $a2, 8
+addiu $a3, $a3, 4
+jal voidcomplete_num
+addiu $a3, $a3, -4
+addiu $a2, $a2, -8
+lw $ra, 4($a2)
 endofprog:
