@@ -300,6 +300,8 @@ void dagOpt()
 inline void clearPool()
 {
 	for (int i = 0; i < 10; ++i) {
+		if (regPool[i].second.first == "" || regPool[i].second.second == -1)
+			continue;
 		int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
 		if (find != -1)
 			symTable.syms[find].reg = "";
@@ -894,7 +896,7 @@ void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
 void optimize()
 {
 	divideBlocks();
-	dagOpt();
+	//dagOpt();
 	liveVarAnalyse();
 	genConfGraph();
 	globalRegAlloc();

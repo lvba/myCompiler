@@ -148,6 +148,7 @@ void genMips()
 		for (int bl = 0; bl < blockGraph.size(); ++bl) {
 			if (i == blockGraph[bl]->codes[0]) { //进入基本块
 				clearPool();
+				break;
 			}
 		}
 		switch (imTable.exprs[i].type) {
@@ -617,6 +618,8 @@ void genMips()
 						}
 					}
 				}
+				//回写
+				writeBack();
 				if (nowLevel != symTable.funcInd.size())
 					genOneCode("jr", "$ra", "", "");
 				else
@@ -707,6 +710,8 @@ void genMips()
 				//根据操作符进行比较
 				jump = condStack[condStack.size() - 1];
 				condStack.pop_back();
+				//先回写
+				writeBack();
 				if (imTable.exprs[i].expr[1] == "==") {
 					if (jump.type == BZ)
 						genOneCode("bne", compVars[0], compVars[1], jump.expr[1]);
@@ -749,6 +754,7 @@ void genMips()
 				}
 				break;
 			case GOTO:
+				writeBack();
 				genOneCode("j", imTable.exprs[i].expr[1], "", "");
 				break;
 			case BNZ:
@@ -834,9 +840,18 @@ void genMips()
 				break;
 		}
 		for (int bl = 0; bl < blockGraph.size(); ++bl) {
-			if (i == blockGraph[bl]->codes.back()) //基本块结尾
-				writeBack();
+			if (i == blockGraph[bl]->codes.back()) { //基本块结尾
+				if (imTable.exprs[i].type != GOTO && imTable.exprs[i].type != COMPARE &&
+					imTable.exprs[i].type != RET && imTable.exprs[i].type != CALL) {
+					writeBack();
+				}							
+				break;
+			}
 		}
+		//if (mipsTable.back()->instr == "mflo" && mipsTable.back()->r1 == "$t0" &&
+		//	mipsTable.back()->r2 == "" && mipsTable.back()->r3 == "") {
+		//	int k = 0;
+		//}
 	}
 	//程序末尾
 	genOneCode("endofprog:", "", "", "");
