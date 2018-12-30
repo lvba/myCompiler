@@ -36,7 +36,7 @@ int main()
 	cout << "语法处理结束！" << endl;
 	if (errorCnt == 0) {
 		//打印中间式表
-		printImTable();
+		//printImTable();
 		//进行优化
 		optimize();
 		//生成mips汇编

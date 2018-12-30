@@ -143,6 +143,7 @@ void genMips()
 		struct intermedia jump;
 		vector<pair<string, int> > assignVars; //赋值语句的所有操作数寄存器或者内存地址
 		vector<string> compVars;
+		int beAssIsNeed;
 		//printEachIm(i);
 		//进入基本块时清空临时寄存器池
 		for (int bl = 0; bl < blockGraph.size(); ++bl) {
@@ -166,6 +167,12 @@ void genMips()
 				//已经做了常量替换，不需要在生成mips的时候用到常量名
 				break;
 			case VARASS:
+				if (imTable.exprs[i].expr[0] == imTable.exprs[i].expr[1] ||
+					imTable.exprs[i].expr[0] == imTable.exprs[i].expr[3]) {
+					beAssIsNeed = 1;
+				} else {
+					beAssIsNeed = 0;
+				}				
 				//查被赋值的变量
 				find = searchAllLevel(imTable.exprs[i].expr[0], nowLevel);
 				if (find == -1) { //_TEMP变量
@@ -180,7 +187,7 @@ void genMips()
 						assignVars.push_back(make_pair(tempRegTab[find], -1));
 					else {
 						vector<string> willBeUse;
-						int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 1, 0);
+						int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 1, beAssIsNeed);
 						if (tempRegTab[find] == "")
 							cout << "致命错误：变量未分配到临时寄存器" << endl;
 						assignVars.push_back(make_pair(tempRegTab[find], -1));
@@ -190,7 +197,7 @@ void genMips()
 						assignVars.push_back(make_pair(symTable.syms[find].reg, -1));
 					else { //跨越基本块不活跃的局部变量以及全局变量，则用寄存器池
 						vector<string> willBeUse;
-						int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 0, 0);
+						int allocReg = getFromPool(imTable.exprs[i].expr[0], nowLevel, willBeUse, find, 0, beAssIsNeed);
 						if (symTable.syms[find].reg == "")
 							cout << "致命错误：变量未分配到临时寄存器" << endl;
 						assignVars.push_back(make_pair(symTable.syms[find].reg, -1));
