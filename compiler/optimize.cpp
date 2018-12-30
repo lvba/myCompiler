@@ -299,12 +299,19 @@ void dagOpt()
 //临时寄存器池分配
 inline void clearPool()
 {
+	for (int i = 0; i < 10; ++i) {
+		int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
+		if (find != -1)
+			symTable.syms[find].reg = "";
+	}
 	for (int i = 0; i < 10; ++i)
 		regPool[i].second.first = "";
+	for (int i = 0; i < 250; ++i)
+		tempRegTab[i] = "";
 }
 
 int getFromPool(string varName, int level, 
-	vector<string> willBeUse, int varInd, int isTemp) //_TEMP和全局变量分配寄存器
+	vector<string> willBeUse, int varInd, int isTemp, int isNeedVal) //_TEMP和全局变量分配寄存器
 {
 	int regInd = -1;
 	for (int i = 0; i < 10; ++i) {
@@ -318,13 +325,16 @@ int getFromPool(string varName, int level,
 		regPool[regInd].second.second = level;
 		if (isTemp == 1) {
 			tempRegTab[varInd] = regPool[regInd].first;
-			genOneCode("lw", regPool[regInd].first, to_string(varInd * 4) + "($a3)", "");
+			if(isNeedVal == 1)
+				genOneCode("lw", regPool[regInd].first, to_string(varInd * 4) + "($a3)", "");
 		} else {
 			symTable.syms[varInd].reg = regPool[regInd].first;
-			if(symTable.syms[varInd].spaceLv == 0)
-				genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
-			else
-				genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+			if (isNeedVal == 1) {
+				if (symTable.syms[varInd].spaceLv == 0)
+					genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
+				else
+					genOneCode("lw", regPool[regInd].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+			}	
 		}
 		return regInd;
 	} else { //寄存器池已满
@@ -362,13 +372,16 @@ int getFromPool(string varName, int level,
 				regPool[i].second.second = level;
 				if (isTemp == 1) {
 					tempRegTab[varInd] = regPool[i].first;
-					genOneCode("lw", regPool[i].first, to_string(varInd * 4) + "($a3)", "");
+					if (isNeedVal == 1)
+						genOneCode("lw", regPool[i].first, to_string(varInd * 4) + "($a3)", "");
 				} else {
 					symTable.syms[varInd].reg = regPool[i].first;
-					if(symTable.syms[varInd].spaceLv == 0)
-						genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
-					else
-						genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+					if (isNeedVal == 1) {
+						if (symTable.syms[varInd].spaceLv == 0)
+							genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a1)", "");
+						else
+							genOneCode("lw", regPool[i].first, to_string(symTable.syms[varInd].addr) + "($a2)", "");
+					}				
 				}
 				return i;
 			}
@@ -411,6 +424,39 @@ void writeBack() //将寄存器池中所有被占用的寄存器回写，并清空寄存器池
 		}
 	}
 	clearPool();
+}
+
+void recover()
+{
+	for (int i = 0; i < 10; ++i) {
+		if (regPool[i].second.first == "")
+			continue;
+		int isTEMP = 0;
+		string str = regPool[i].second.first;
+		if (str.size() > 5) {
+			if (str.substr(0, 5) == "_TEMP") {
+				str.erase(str.find("_TEMP"), 5);
+				istringstream is(str);
+				int tempNum;
+				is >> tempNum;
+				genOneCode("lw", regPool[i].first, to_string(tempNum * 4) + "($a3)", "");
+				isTEMP = 1;
+			}
+		}
+		if (isTEMP == 0) {
+			int find = searchAllLevel(regPool[i].second.first, regPool[i].second.second);
+			if (find == -1)
+				cout << "在寄存器池相关操作中出现致命错误" << endl;
+			else {
+				int addr = symTable.syms[find].addr;
+				if (symTable.syms[find].spaceLv == 0)
+					genOneCode("lw", regPool[i].first, to_string(addr) + "($a1)", "");
+				else
+					genOneCode("lw", regPool[i].first, to_string(addr) + "($a2)", "");
+				symTable.syms[find].reg = regPool[i].first;
+			}
+		}
+	}
 }
 
 pair<int, int> getFuncBlocks(int blockInd) //返回包含blockInd的函数的起始和结束block在blockGraph的下标
