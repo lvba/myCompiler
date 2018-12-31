@@ -809,6 +809,25 @@ void genConfGraph()
 						}
 					}
 				}
+				//对于每个块，将out-in中的变量与in中的每个变量都连上边
+				vector<string> outSubIn = setSub(blockGraph[i]->out, blockGraph[i]->in);
+				for (int ind1 = 0; ind1 < outSubIn.size(); ++ind1) {
+					for (int ind2 = 0; ind2 < blockGraph[i]->in.size(); ++ind2) {
+						int nodeInd1 = findInConf(funcConf, outSubIn[ind1]);
+						int nodeInd2 = findInConf(funcConf, blockGraph[i]->in[ind2]);
+						int flag = 0;
+						for (int a = 0; a < funcConf[nodeInd1]->confVars.size(); ++a) {
+							if (funcConf[nodeInd1]->confVars[a]->name == funcConf[nodeInd2]->name) {
+								flag = 1;
+								break;
+							}
+						}
+						if (flag == 0) { //添加连接
+							funcConf[nodeInd1]->confVars.push_back(funcConf[nodeInd2]);
+							funcConf[nodeInd2]->confVars.push_back(funcConf[nodeInd1]);
+						}
+					}
+				}
 			}
 			confGraph.push_back(funcConf);
 		}
