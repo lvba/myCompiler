@@ -929,6 +929,21 @@ void globalRegAlloc() //图着色算法为每个函数的冲突图分配全局寄存器s0-s7
 	}
 }
 
+void getNoCallFunc()
+{
+	vector<int> callFuncInds;
+	for (int i = 0; i < blockGraph.size(); ++i) {
+		if (imTable.exprs[blockGraph[i]->codes.back()].type == CALL) {
+			int ind = getBlockLevel(i) - 1;
+			callFuncInds.push_back(ind);
+		}
+	}
+	for (int i = 0; i < symTable.funcInd.size(); ++i) {
+		if (find(callFuncInds.begin(), callFuncInds.end(), i) == callFuncInds.end())
+			noCallFunc.push_back(symTable.syms[symTable.funcInd[i]].name);
+	}
+}
+
 void optimize()
 {
 	divideBlocks();
@@ -936,6 +951,7 @@ void optimize()
 	liveVarAnalyse();
 	genConfGraph();
 	globalRegAlloc();
+	getNoCallFunc();
 }
 
 

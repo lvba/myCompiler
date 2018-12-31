@@ -16,6 +16,20 @@ static int strNum = 0;
 static string printStr = "";
 static ofstream ofile;
 
+int funcMaxReg(int funcInd) 
+{
+	int max = -1;
+	for (int i = funcInd + 1; symTable.syms[i].object != 4 && i < symTable.top; ++i) {
+		if (symTable.syms[i].reg != "") {
+			if (symTable.syms[i].reg[1] == 's') {
+				if ((symTable.syms[i].reg[2] - '0') >= max)
+					max = symTable.syms[i].reg[2] - '0';
+			}
+		}
+	}
+	return max;
+}
+
 void printMips()
 {
 	ofile.open("../mipsCode.txt");
@@ -539,15 +553,33 @@ void genMips()
 						writeBack(1); 
 							//回写s0-s7(即回写除数组外的所有局部变量)
 						int callFuncInd = symTable.funcInd[nowLevel - 1];
-						++callFuncInd;//指向该函数的第一个局部变量
-						while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
-							if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
-								if (symTable.syms[callFuncInd].reg != "") {
-									if(symTable.syms[callFuncInd].reg[1] == 's')
-										genOneCode("sw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
+						int canBeOpt = -1;
+						int maxReg = -1;
+						if (std::find(noCallFunc.begin(), noCallFunc.end(), funcName) != noCallFunc.end() &&
+							funcMaxReg(callFuncInd) > funcMaxReg(funcInd)) { //是类似mod的函数，则只用存mod用到的寄存器
+							canBeOpt = 1;
+							maxReg = funcMaxReg(funcInd);
+							++callFuncInd;//指向该函数的第一个局部变量
+							while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									if (symTable.syms[callFuncInd].reg != "") {
+										if (symTable.syms[callFuncInd].reg[1] == 's' && (symTable.syms[callFuncInd].reg[2] - '0') <= funcMaxReg(funcInd))
+											genOneCode("sw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
+									}
 								}
+								++callFuncInd;
 							}
-							++callFuncInd;
+						} else { 
+							++callFuncInd;//指向该函数的第一个局部变量
+							while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									if (symTable.syms[callFuncInd].reg != "") {
+										if (symTable.syms[callFuncInd].reg[1] == 's')
+											genOneCode("sw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
+									}
+								}
+								++callFuncInd;
+							}
 						}
 							//回写$ra寄存器
 						genOneCode("sw", "$ra", to_string(stackOffset - 4) + "($a2)", "");		
@@ -573,19 +605,38 @@ void genMips()
 						genOneCode("lw", "$ra", to_string(stackOffset - 4) + "($a2)", "");
 							//恢复s0-s7
 						callFuncInd = symTable.funcInd[nowLevel - 1];
-						++callFuncInd;//指向该函数的第一个局部变量
-						vector<string> saved;
-						while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
-							if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
-								if (symTable.syms[callFuncInd].reg != "") {
-									if (symTable.syms[callFuncInd].reg[1] == 's' && (std::find(saved.begin(), saved.end(), symTable.syms[callFuncInd].reg) == saved.end())) {
-										genOneCode("lw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
-										saved.push_back(symTable.syms[callFuncInd].reg);
-									}			
+						if (canBeOpt == 1) {
+							++callFuncInd;//指向该函数的第一个局部变量
+							vector<string> saved;
+							while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									if (symTable.syms[callFuncInd].reg != "") {
+										if (symTable.syms[callFuncInd].reg[1] == 's' && (std::find(saved.begin(), saved.end(), symTable.syms[callFuncInd].reg) == saved.end())) {
+											if ((symTable.syms[callFuncInd].reg[2] - '0') <= maxReg) {
+												genOneCode("lw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
+												saved.push_back(symTable.syms[callFuncInd].reg);
+											}							
+										}
+									}
 								}
+								++callFuncInd;
 							}
-							++callFuncInd;
+						} else {
+							++callFuncInd;//指向该函数的第一个局部变量
+							vector<string> saved;
+							while (callFuncInd < symTable.top && symTable.syms[callFuncInd].spaceLv == nowLevel) {
+								if (symTable.syms[callFuncInd].object == 1 || symTable.syms[callFuncInd].object == 2) {
+									if (symTable.syms[callFuncInd].reg != "") {
+										if (symTable.syms[callFuncInd].reg[1] == 's' && (std::find(saved.begin(), saved.end(), symTable.syms[callFuncInd].reg) == saved.end())) {
+											genOneCode("lw", symTable.syms[callFuncInd].reg, to_string(symTable.syms[callFuncInd].addr) + "($a2)", "");
+											saved.push_back(symTable.syms[callFuncInd].reg);
+										}
+									}
+								}
+								++callFuncInd;
+							}
 						}
+						
 							//恢复t0-t9
 						//regPool = copyRegPool;
 						//tempRegTab = copyTempRegTab;

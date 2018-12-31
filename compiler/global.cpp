@@ -24,6 +24,7 @@ int errorCnt = 0;
 int staticTempNum = 0;
 vector<pair<string, pair<string, int> > > regPool;//寄存器号，变量名，变量作用域
 vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
+vector<string> noCallFunc; //不会调用其他函数的函数
 
 enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,

@@ -21,6 +21,7 @@ extern int errorCnt;
 extern int staticTempNum;
 extern vector<pair<string, pair<string, int> > > regPool;
 extern vector<string> tempRegTab; //存储_TEMP变量的寄存器分配状态
+extern vector<string> noCallFunc; //不会调用其他函数的函数
 
 extern enum symbol {//枚举所有类别码
 	PLUS, MINUS, TIMES, DIV,
