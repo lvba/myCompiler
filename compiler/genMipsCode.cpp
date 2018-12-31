@@ -906,7 +906,9 @@ void genMips()
 				if (imTable.exprs[i].type != GOTO && imTable.exprs[i].type != COMPARE &&
 					imTable.exprs[i].type != RET && imTable.exprs[i].type != CALL) {
 					writeBack(0);
-				}							
+				}	
+				if(imTable.exprs[i].type == CALL && (imTable.exprs[i].expr[1] == "printf" || imTable.exprs[i].expr[1] == "scanf"))
+					writeBack(0);
 				break;
 			}
 		}

@@ -144,6 +144,7 @@ move $t0, $a0
 li $v0, 4
 la $a0, STRING4
 syscall
+sw $t0, 12($a2)
 LABEL8:
 lw $t0, 12($a2)
 li $v1, 1
@@ -873,6 +874,7 @@ syscall
 li $v0, 4
 la $a0, STRING27
 syscall
+sw $t2, 48($a2)
 jr $ra
 voidmain:
 li $a0, 12
